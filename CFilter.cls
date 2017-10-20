@@ -78,11 +78,11 @@ Private Sub typeRecognition()
         Case "string", "text"
             pApostropheIfString = "'"
     End Select
-Delim = pApostropheIfString & "," & pApostropheIfString
 typeRecognized = True
 End Sub
 
 Private Sub setQuerryWrap(ByRef condBegin As String, ByRef condEnd As String, ByVal CmprSign)
+Dim breakPoint As Long
 If Not typeRecognized Then Call typeRecognition
 On Error GoTo ErrHandler
 CmprSign = Replace(pCompareMode, " ", vbNullString)
