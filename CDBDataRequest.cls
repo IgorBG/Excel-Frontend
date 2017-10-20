@@ -14,7 +14,7 @@ Option Explicit
 Private pConn As Object                   'DB connection object
 Private pCommand As String              'Example: SELECT
 Private pAtribNames As Collection       'Example: FileName, FilePath
-Private pTables As Collection           'Example: Images (From clause)
+Private pTables As Collection           'Example: Images ('FROM' clause)
 Private pFilters As Collection          'Example: WHERE FileName = "cat.jpg"
 Private pFltrUnion As String            'Example: AND
 Private pSortBy As Collection           'Example: FileName
