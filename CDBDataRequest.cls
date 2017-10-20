@@ -108,7 +108,7 @@ End Sub
         Set oFilter = Nothing
     Exit Sub
 ErrHandler:
-    EmergencyExit ("Неуспешен опит за създаване на филтър. Процедура AddFilterSingleCondValue. Модул CDataStorage")
+    EmergencyExit ("ГЌГҐГіГ±ГЇГҐГёГҐГ­ Г®ГЇГЁГІ Г§Г  Г±ГєГ§Г¤Г ГўГ Г­ГҐ Г­Г  ГґГЁГ«ГІГєГ°. ГЏГ°Г®Г¶ГҐГ¤ГіГ°Г  AddFilterSingleCondValue. ГЊГ®Г¤ГіГ« CDataStorage")
     End Sub
         Private Function FiltersToString() As String
             Dim F As CFilter
@@ -119,7 +119,7 @@ ErrHandler:
         Next F
         FiltersToString = Left(FiltersToString, Len(FiltersToString) - Len(pFltrUnion))
         Exit Function
-ErrHandler: EmergencyExit ("Неуспешен опит за прилагане на филтрите към запитването. Функция FiltersToString. Модул CDataStorage")
+ErrHandler: EmergencyExit ("ГЌГҐГіГ±ГЇГҐГёГҐГ­ Г®ГЇГЁГІ Г§Г  ГЇГ°ГЁГ«Г ГЈГ Г­ГҐ Г­Г  ГґГЁГ«ГІГ°ГЁГІГҐ ГЄГєГ¬ Г§Г ГЇГЁГІГўГ Г­ГҐГІГ®. Г”ГіГ­ГЄГ¶ГЁГї FiltersToString. ГЊГ®Г¤ГіГ« CDataStorage")
         End Function
 
 Private Function CollectionToString(InColl As Collection, Optional Delim As String = ",", Optional BeginStr As String, Optional EndStr As String) As String
@@ -132,8 +132,9 @@ CollectionToString = Left(CollectionToString, Len(CollectionToString) - Len(Deli
 CollectionToString = BeginStr & CollectionToString & EndStr
 End Function
 
-Private Sub AddAtributes(ByRef Coll As Collection, ByRef inValue As String, Optional ByVal Delim As String = ",")
+Private Sub AddAtributes(ByRef Coll As Collection, ByRef inValue As String, Optional ByVal Delim As String = ",", Optional doClearSpaces As Boolean = True)
     Dim v As Variant, i As Long
+    If doClearSpaces Then inValue = Replace(inValue, " ", vbNullString)
     v = Split(inValue, Delim)
     For i = LBound(v) To UBound(v)
         Coll.Add (v(i))
