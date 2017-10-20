@@ -108,7 +108,7 @@ End Sub
         Set oFilter = Nothing
     Exit Sub
 ErrHandler:
-    EmergencyExit ("Íåóñïåøåí îïèò çà ñúçäàâàíå íà ôèëòúð. Ïðîöåäóðà AddFilterSingleCondValue. Ìîäóë CDataStorage")
+    EmergencyExit ("Неуспешен опит за създаване на филтър. Процедура AddFilterSingleCondValue. Модул CDataStorage")
     End Sub
         Private Function FiltersToString() As String
             Dim F As CFilter
@@ -119,7 +119,7 @@ ErrHandler:
         Next F
         FiltersToString = Left(FiltersToString, Len(FiltersToString) - Len(pFltrUnion))
         Exit Function
-ErrHandler: EmergencyExit ("Íåóñïåøåí îïèò çà ïðèëàãàíå íà ôèëòðèòå êúì çàïèòâàíåòî. Ôóíêöèÿ FiltersToString. Ìîäóë CDataStorage")
+ErrHandler: EmergencyExit ("Неуспешен опит за прилагане на филтрите към запитването. Функция FiltersToString. Модул CDataStorage")
         End Function
 
 Private Function CollectionToString(InColl As Collection, Optional Delim As String = ",", Optional BeginStr As String, Optional EndStr As String) As String
