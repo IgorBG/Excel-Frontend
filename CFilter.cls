@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "CFilter"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
 Private pAtributeName As String
 Private pCompareMode As String
 Private pCondContent As Collection
@@ -58,10 +49,10 @@ Exit Property
 
 ErrHandler:
 Select Case breakPoint
-    Case 50: EmergencyExit ("Неуспешен опит за прилагане на филтрите към запитването. Модул Филтри")
-    Case 200: EmergencyExit ("Неуспешен опит за преконвертиране на стойността. Модул Филтри")
-    Case 250: EmergencyExit ("Програмата не може да преконвертира данните в тип " & pConvertToType)
-    Case Else: EmergencyExit ("Неуспешен опит за прилагане на филтрите към запитването. Модул Филтри")
+    Case 50: EmergencyExit ("РќРµСѓСЃРїРµС€РµРЅ РѕРїРёС‚ Р·Р° РїСЂРёР»Р°РіР°РЅРµ РЅР° С„РёР»С‚СЂРёС‚Рµ РєСЉРј Р·Р°РїРёС‚РІР°РЅРµС‚Рѕ. РњРѕРґСѓР» Р¤РёР»С‚СЂРё")
+    Case 200: EmergencyExit ("РќРµСѓСЃРїРµС€РµРЅ РѕРїРёС‚ Р·Р° РїСЂРµРєРѕРЅРІРµСЂС‚РёСЂР°РЅРµ РЅР° СЃС‚РѕР№РЅРѕСЃС‚С‚Р°. РњРѕРґСѓР» Р¤РёР»С‚СЂРё")
+    Case 250: EmergencyExit ("РџСЂРѕРіСЂР°РјР°С‚Р° РЅРµ РјРѕР¶Рµ РґР° РїСЂРµРєРѕРЅРІРµСЂС‚РёСЂР° РґР°РЅРЅРёС‚Рµ РІ С‚РёРї " & pConvertToType)
+    Case Else: EmergencyExit ("РќРµСѓСЃРїРµС€РµРЅ РѕРїРёС‚ Р·Р° РїСЂРёР»Р°РіР°РЅРµ РЅР° С„РёР»С‚СЂРёС‚Рµ РєСЉРј Р·Р°РїРёС‚РІР°РЅРµС‚Рѕ. РњРѕРґСѓР» Р¤РёР»С‚СЂРё")
 End Select
 End Property
 
@@ -101,9 +92,9 @@ CmprSign = Replace(pCompareMode, " ", vbNullString)
 Exit Sub
 ErrHandler:
 Select Case breakPoint
-    Case 100: EmergencyExit ("Филтърът със посочения знак не може да поема множественни условия. Процедура setQuerryWrap, модул CFilter")
-    Case 150: EmergencyExit ("Непознат вид на филтъра на данните. Процедура setQuerryWrap, модул CFilter")
-    Case Else: EmergencyExit ("Не мога да съставя условието за филтъра. Процедура setQuerryWrap, модул CFilter")
+    Case 100: EmergencyExit ("Р¤РёР»С‚СЉСЂСЉС‚ СЃСЉСЃ РїРѕСЃРѕС‡РµРЅРёСЏ Р·РЅР°Рє РЅРµ РјРѕР¶Рµ РґР° РїРѕРµРјР° РјРЅРѕР¶РµСЃС‚РІРµРЅРЅРё СѓСЃР»РѕРІРёСЏ. РџСЂРѕС†РµРґСѓСЂР° setQuerryWrap, РјРѕРґСѓР» CFilter")
+    Case 150: EmergencyExit ("РќРµРїРѕР·РЅР°С‚ РІРёРґ РЅР° С„РёР»С‚СЉСЂР° РЅР° РґР°РЅРЅРёС‚Рµ. РџСЂРѕС†РµРґСѓСЂР° setQuerryWrap, РјРѕРґСѓР» CFilter")
+    Case Else: EmergencyExit ("РќРµ РјРѕРіР° РґР° СЃСЉСЃС‚Р°РІСЏ СѓСЃР»РѕРІРёРµС‚Рѕ Р·Р° С„РёР»С‚СЉСЂР°. РџСЂРѕС†РµРґСѓСЂР° setQuerryWrap, РјРѕРґСѓР» CFilter")
 End Select
 End Sub
 
