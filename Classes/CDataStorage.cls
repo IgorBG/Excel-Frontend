@@ -54,7 +54,7 @@ Public Property Get getValue(ByVal rowIndex As String, ByVal clmnIndex As String
 End Property
 Private Function TestedIndex(ByVal indx As String, ByRef col As Collection) As Variant
     If Not ObjectIsInCollection(col, indx) Then
-        If Not IsNumeric(indx) Then Call EmergencyExit("Грешка при сканиране на datasource за наличие на колона с индекс: " & indx & ". Модул CDataStorage")
+        If Not IsNumeric(indx) Then Call EmergencyExit("ГѓГ°ГҐГёГЄГ  ГЇГ°ГЁ Г±ГЄГ Г­ГЁГ°Г Г­ГҐ Г­Г  datasource Г§Г  Г­Г Г«ГЁГ·ГЁГҐ Г­Г  ГЄГ®Г«Г®Г­Г  Г± ГЁГ­Г¤ГҐГЄГ±: " & indx & ". ГЊГ®Г¤ГіГ« CDataStorage")
         TestedIndex = indx: Exit Function
     End If
     TestedIndex = getClmnIndx(indx)
