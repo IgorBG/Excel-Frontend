@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "CFilterCollection"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
 Option Explicit
 
 Private pFilterContent As Collection
@@ -38,7 +29,7 @@ toString = Left(toString, Len(toString) - Len(UnionType))
 Exit Property
 
 ErrHandler:
-EmergencyExit ("Неуспешен опит за прилагане на филтрите към запитването. Модул CFilterCollection")
+EmergencyExit ("РќРµСѓСЃРїРµС€РµРЅ РѕРїРёС‚ Р·Р° РїСЂРёР»Р°РіР°РЅРµ РЅР° С„РёР»С‚СЂРёС‚Рµ РєСЉРј Р·Р°РїРёС‚РІР°РЅРµС‚Рѕ. РњРѕРґСѓР» CFilterCollection")
 End Property
 
 
@@ -55,5 +46,5 @@ If pFilterContent Is Nothing Then Set pFilterContent = New Collection
     Set oFilter = Nothing
 Exit Sub
 ErrHandler:
-EmergencyExit ("Неуспешен опит за създаване на филтър. Процедура AddFilterSingleCondValue. Модул CFilterCollection")
+EmergencyExit ("РќРµСѓСЃРїРµС€РµРЅ РѕРїРёС‚ Р·Р° СЃСЉР·РґР°РІР°РЅРµ РЅР° С„РёР»С‚СЉСЂ. РџСЂРѕС†РµРґСѓСЂР° AddFilterSingleCondValue. РњРѕРґСѓР» CFilterCollection")
 End Sub
