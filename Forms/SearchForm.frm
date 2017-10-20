@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SearchForm 
-   Caption         =   "Òúðñåíå"
+Caption         =   "Search"
    ClientHeight    =   3660
    ClientLeft      =   45
    ClientTop       =   330
@@ -24,8 +24,8 @@ Private pContext As String
 Private Const defWidth As Double = 450
 Private Const defHeight As Double = 200
 Private Const frmBord As Double = 4
-Private Const defWindowCaption As String = "Ïðîçîðåö çà òúðñåíå"
-Private Const defHelpCaption As String = "Âúâåäåòå èìåòî ïî êîåòî æåëàåòå äà òúðñèòå åëåìåíòèòå â Áàçàòà äàííè"
+Private Const defWindowCaption As String = "Прозорец за търсене"
+Private Const defHelpCaption As String = "Въведете името по което желаете да търсите елементите в Базата данни"
     
 Private WithEvents EventLogger As CListener
 Attribute EventLogger.VB_VarHelpID = -1
@@ -67,7 +67,7 @@ End Sub
 
 
 Public Sub Constructor(Optional frmWidth As Double, Optional frmHeight As Double, Optional frmCaption As String, Optional helpCaption As String, Optional clmnCount As Long, Optional Context As String)
-'Êîíñòðóêòîðúò íà ïðîçîðåöà çà òúðñåíå. Ïîäðåæäà ïîëåòà è áóòîíèòå ñïîðåä ðàçìåðà íà ïðîçîðåöà
+'Конструкторът на прозореца за търсене. Подрежда полета и бутоните според размера на прозореца
     Dim TempDbl As Double
 'Defaults
 If frmWidth = 0 Then frmWidth = defWidth
