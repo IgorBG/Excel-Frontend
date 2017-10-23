@@ -42,15 +42,15 @@ Private Function getInicialWS(ByVal WSName As String) As Worksheet
     On Error GoTo ErrHandler
     Set getInicialWS = ThisWorkbook.Worksheets(WSName): Exit Function
 ErrHandler:
-    MsgBox "Програмата не може да открие лист с име '" & WSName & "'. Вероятно той е бил изтрит или преименуван." & _
-            "Моля, възстановете го или ползвайте последната работеща версия на програмата": End
+    MsgBox "ГЏГ°Г®ГЈГ°Г Г¬Г ГІГ  Г­ГҐ Г¬Г®Г¦ГҐ Г¤Г  Г®ГІГЄГ°ГЁГҐ Г«ГЁГ±ГІ Г± ГЁГ¬ГҐ '" & WSName & "'. Г‚ГҐГ°Г®ГїГІГ­Г® ГІГ®Г© ГҐ ГЎГЁГ« ГЁГ§ГІГ°ГЁГІ ГЁГ«ГЁ ГЇГ°ГҐГЁГ¬ГҐГ­ГіГўГ Г­." & _
+            "ГЊГ®Г«Гї, ГўГєГ§Г±ГІГ Г­Г®ГўГҐГІГҐ ГЈГ® ГЁГ«ГЁ ГЇГ®Г«Г§ГўГ Г©ГІГҐ ГЇГ®Г±Г«ГҐГ¤Г­Г ГІГ  Г°Г ГЎГ®ГІГҐГ№Г  ГўГҐГ°Г±ГЁГї Г­Г  ГЇГ°Г®ГЈГ°Г Г¬Г ГІГ ": End
 End Function
 Private Sub InicialWS(ByRef WSObject As Worksheet, ByVal WSName As String)
     On Error GoTo ErrHandler
     Set WSObject = ThisWorkbook.Worksheets(WSName): Exit Sub
 ErrHandler:
-    MsgBox "Програмата не може да открие лист с име '" & WSName & "'. Вероятно той е бил изтрит или преименуван." & _
-            "Моля, възстановете го или ползвайте последната работеща версия на програмата": End
+    MsgBox "ГЏГ°Г®ГЈГ°Г Г¬Г ГІГ  Г­ГҐ Г¬Г®Г¦ГҐ Г¤Г  Г®ГІГЄГ°ГЁГҐ Г«ГЁГ±ГІ Г± ГЁГ¬ГҐ '" & WSName & "'. Г‚ГҐГ°Г®ГїГІГ­Г® ГІГ®Г© ГҐ ГЎГЁГ« ГЁГ§ГІГ°ГЁГІ ГЁГ«ГЁ ГЇГ°ГҐГЁГ¬ГҐГ­ГіГўГ Г­." & _
+            "ГЊГ®Г«Гї, ГўГєГ§Г±ГІГ Г­Г®ГўГҐГІГҐ ГЈГ® ГЁГ«ГЁ ГЇГ®Г«Г§ГўГ Г©ГІГҐ ГЇГ®Г±Г«ГҐГ¤Г­Г ГІГ  Г°Г ГЎГ®ГІГҐГ№Г  ГўГҐГ°Г±ГЁГї Г­Г  ГЇГ°Г®ГЈГ°Г Г¬Г ГІГ ": End
 End Sub
 
             Private Function Collection_Nastrojki_Edna_Kolona(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, _
@@ -113,24 +113,24 @@ End Sub
              SourceSheetLastRow = SourceSheet.Cells(Rows.Count, 1).End(xlUp).Row
              'SourceSheetLastCol = SourceSheet.Cells(1, Columns.Count).End(xlToLeft).Column
              SourceSheetLastCol = 255
-            ' търсим настройките на страницата
-            For i = StartRow To SourceSheetLastRow ' търсим реда с кодовото име NachZapis
+            ' ГІГєГ°Г±ГЁГ¬ Г­Г Г±ГІГ°Г®Г©ГЄГЁГІГҐ Г­Г  Г±ГІГ°Г Г­ГЁГ¶Г ГІГ 
+            For i = StartRow To SourceSheetLastRow ' ГІГєГ°Г±ГЁГ¬ Г°ГҐГ¤Г  Г± ГЄГ®Г¤Г®ГўГ®ГІГ® ГЁГ¬ГҐ NachZapis
                 If SourceSheet.Cells(i, 1).Value = NachZapis Then FirstRow = i: Exit For
             Next i
-            For i = FirstRow To SourceSheetLastRow ' търсим реда с кодовото име KrajZapis
+            For i = FirstRow To SourceSheetLastRow ' ГІГєГ°Г±ГЁГ¬ Г°ГҐГ¤Г  Г± ГЄГ®Г¤Г®ГўГ®ГІГ® ГЁГ¬ГҐ KrajZapis
                 If SourceSheet.Cells(i, 1).Value = KrajZapis Then LastRow = i - 1: Exit For
             Next i
-            For i = 1 To SourceSheetLastCol ' търсим колоната с кодовото име LastKolZapis
+            For i = 1 To SourceSheetLastCol ' ГІГєГ°Г±ГЁГ¬ ГЄГ®Г«Г®Г­Г ГІГ  Г± ГЄГ®Г¤Г®ГўГ®ГІГ® ГЁГ¬ГҐ LastKolZapis
                 If SourceSheet.Cells(FirstRow, i).Value = LastKolZapis Then LastCol = i - 1: Exit For
             Next i
             Data_Nastrojki = SourceSheet.Range(SourceSheet.Cells(FirstRow + IgnoreRows, 1), SourceSheet.Cells(LastRow, LastCol))
             Exit Function
 ErrHandler:
-            MsgBox ("Не откривам необходимата маркировка за таблица " & NachZapis & vbCrLf & _
-                    "Откритите параметри:" & vbCrLf & _
-                    "Първия ред: " & FirstRow & " - Ключ:" & NachZapis & vbCrLf & _
-                    "Последната колона: " & LastCol & " - Ключ:" & LastKolZapis & vbCrLf & _
-                    "Последния ред: " & LastRow & " - Ключ:" & KrajZapis)
+            MsgBox ("ГЌГҐ Г®ГІГЄГ°ГЁГўГ Г¬ Г­ГҐГ®ГЎГµГ®Г¤ГЁГ¬Г ГІГ  Г¬Г Г°ГЄГЁГ°Г®ГўГЄГ  Г§Г  ГІГ ГЎГ«ГЁГ¶Г  " & NachZapis & vbCrLf & _
+                    "ГЋГІГЄГ°ГЁГІГЁГІГҐ ГЇГ Г°Г Г¬ГҐГІГ°ГЁ:" & vbCrLf & _
+                    "ГЏГєГ°ГўГЁГї Г°ГҐГ¤: " & FirstRow & " - ГЉГ«ГѕГ·:" & NachZapis & vbCrLf & _
+                    "ГЏГ®Г±Г«ГҐГ¤Г­Г ГІГ  ГЄГ®Г«Г®Г­Г : " & LastCol & " - ГЉГ«ГѕГ·:" & LastKolZapis & vbCrLf & _
+                    "ГЏГ®Г±Г«ГҐГ¤Г­ГЁГї Г°ГҐГ¤: " & LastRow & " - ГЉГ«ГѕГ·:" & KrajZapis)
             End
 End Function
 
@@ -141,5 +141,5 @@ Set getNewBean = New CBean
     getNewBean.Val = Value
 Exit Function
 ErrHandler:
-Call EmergencyExit("Функция getNewBean")
+Call EmergencyExit("Г”ГіГ­ГЄГ¶ГЁГї getNewBean")
 End Function
