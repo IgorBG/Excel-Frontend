@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} StdInputForm 
-   Caption         =   "Въвеждане в база данни"
+   Caption         =   "Г‚ГєГўГҐГ¦Г¤Г Г­ГҐ Гў ГЎГ Г§Г  Г¤Г Г­Г­ГЁ"
    ClientHeight    =   5490
    ClientLeft      =   45
    ClientTop       =   330
@@ -22,8 +22,8 @@ Private pSearchQuerry As String
 Private pResults As Variant
 Private pContext As String
 Private Const frmBord As Double = 4
-Private Const defWindowCaption As String = "Прозорец за въвеждане"
-Private Const defHelpCaption As String = "Въведете данните, които желаете да въедете в Базата данни"
+Private Const defWindowCaption As String = "ГЏГ°Г®Г§Г®Г°ГҐГ¶ Г§Г  ГўГєГўГҐГ¦Г¤Г Г­ГҐ"
+Private Const defHelpCaption As String = "Г‚ГєГўГҐГ¤ГҐГІГҐ Г¤Г Г­Г­ГЁГІГҐ, ГЄГ®ГЁГІГ® Г¦ГҐГ«Г ГҐГІГҐ Г¤Г  ГўГєГҐГ¤ГҐГІГҐ Гў ГЃГ Г§Г ГІГ  Г¤Г Г­Г­ГЁ"
 Private WithEvents EventLogger As CListener
 Attribute EventLogger.VB_VarHelpID = -1
 
@@ -57,7 +57,7 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
     End If
 End Sub
 Public Sub Constructor(Optional frmWidth As Double, Optional frmHeight As Double, Optional frmCaption As String, Optional helpCaption As String, Optional clmnCount As Long, Optional Context As String)
-'Конструкторът на прозореца за търсене. Подрежда полета и бутоните според размера на прозореца
+'ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г°ГєГІ Г­Г  ГЇГ°Г®Г§Г®Г°ГҐГ¶Г  Г§Г  ГІГєГ°Г±ГҐГ­ГҐ. ГЏГ®Г¤Г°ГҐГ¦Г¤Г  ГЇГ®Г«ГҐГІГ  ГЁ ГЎГіГІГ®Г­ГЁГІГҐ Г±ГЇГ®Г°ГҐГ¤ Г°Г Г§Г¬ГҐГ°Г  Г­Г  ГЇГ°Г®Г§Г®Г°ГҐГ¶Г 
     Dim TempDbl As Double
 'Defaults
 If frmWidth = 0 Then frmWidth = Me.Width
