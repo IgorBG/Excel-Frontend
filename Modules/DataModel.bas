@@ -65,19 +65,17 @@ Select Case Context
     Case "DBSavedStops"
         Set conn = GetNewConnToAccess(Nastr("Datasources").Item("DB_Expedition").Val)
         Set GetPresetCollection = New Collection                                                                      'Parameters = ([@SpeditionDate] [@RouteListType] [@RouteListID])
-        Parameters = Array(CDbl(CDate(CheckedValue("date", False, DS("SpeditionDate").Val))), 1, 0)
+        Parameters = Array(CDbl(CDate(CheckedValue("date", False, DS("TempValues").Item("SpeditionDate").Val))), 1, 0)
         queryName = "selectStopsForSpecificDate"
         queryType = adCmdStoredProc
-'    Case "IgnoreList"
+    Case "WS_Order_Clients"
+        Set MarkNastr = Nastr("ERPMark")
+'    Case "IgnoreList"  'just for example
 '        Set GetPresetCollection = New Collection
 '        Set WS = ExSheet
 '        StartRow = 2
 '        LastCol = 1
 '        LastRow = WS.Cells(Rows.Count, 1).End(xlUp).Row
-    Case "WS_Order_Clients"
-        Set MarkNastr = Nastr("ERPMark")
-
-        
 End Select
 '=============================================
 Select Case Context
@@ -110,21 +108,20 @@ Select Case Context
                         Set itm = New Collection
                             Call itm.Add(getNewBean("ClientName", CStr(LocalData(i, MarkNastr("KlientCol").Val))), "ClientName")
                             Call itm.Add(getNewBean("ClientCity", CStr(LocalData(i, MarkNastr("GradCol").Val))), "ClientCity")
-                            Call itm.Add(getNewBean("ClntNum", CStr(ClientLog.Count + 1)), "ClntNum")
+                            Call itm.Add(getNewBean("ClntNum", CStr(GetPresetCollection.Count + 1)), "ClntNum")
                         GetPresetCollection.Add itm, KeyString
                         Set itm = Nothing
                     End If
                 End If
             Next i
- '   Case "IgnoreList"
- '       LocalData = WS.Range(WS.Cells(StartRow, 1), WS.Cells(LastRow, LastCol))
- '       For i = LBound(LocalData) To UBound(LocalData)
- '           KeyString = CStr(LocalData(i, 1))
- '           If Not ValueIsInCollection(GetPresetCollection, KeyString) Then
- '               GetPresetCollection.Add KeyString, KeyString
- '           End If
- '       Next i
-    
+'    Case "IgnoreList"
+'        LocalData = WS.Range(WS.Cells(StartRow, 1), WS.Cells(LastRow, LastCol))
+'        For i = LBound(LocalData) To UBound(LocalData)
+'            KeyString = CStr(LocalData(i, 1))
+'            If Not ValueIsInCollection(GetPresetCollection, KeyString) Then
+'                GetPresetCollection.Add KeyString, KeyString
+'            End If
+'        Next i
     Case "DBSavedStops_FilteredUnloadPlaces"
         Set GetPresetCollection = GetFilteredCollection(GetPresetCollection("DBSavedStops"), Context)    'Recursive Filtering a new collection: Unloading places only
     Case "DBSavedStops_FilteredClients"
@@ -149,12 +146,12 @@ Private Function GetFilteredCollection(ByVal inData As Variant, Context As Strin
         Case vbNullString
             Set GetFilteredCollection = inData: Exit Function
         Case "DBSavedStops_FilteredUnloadPlaces"
-            For Each itm In inCollection
+            For Each itm In inData
                 KeyString = itm("UnloadPlace").Val & " / " & itm("UnloadCity").Val
                 If Not ObjectIsInCollection(GetFilteredCollection, KeyString) Then GetFilteredCollection.Add itm, KeyString
             Next itm
         Case "DBSavedStops_FilteredClients"
-            For Each itm In inCollection
+            For Each itm In inData
                 KeyString = itm("ClientName").Val & " / " & itm("ClientCity").Val
                 If Not ObjectIsInCollection(GetFilteredCollection, KeyString) Then GetFilteredCollection.Add itm, KeyString
             Next itm
@@ -178,9 +175,8 @@ If Not IsInitialized Then Call Inicial_Main
 
 If Not ForceReset Then
     Select Case Context
-        Case "OrderList", "ClientList"
+        Case "OrderList"
             If ObjectIsInCollection(DS, Context) Then getPresetData = DS(Context).Val: Exit Function
-    
     End Select
 End If
 '====== Settings related to the context ======
@@ -188,21 +184,12 @@ Select Case Context
     Case "OrderList"
         Set WS = ERPSheet
         Set SetColl = Nastr("ERPMark")
-    Case "ClientList"
-        Set WS = RAZPSheet
-        Set SetColl = Nastr("RazpredKlientiMark")
-
 End Select
 '=============================================
 Select Case Context
     Case "OrderList"
         If StartRow = 0 Or LastRow = 0 Or LastCol = 0 Then Call MarkupOrderList(StartRow, LastRow, LastCol)
         getPresetData = WS.Range(WS.Cells(StartRow, 1), WS.Cells(LastRow, LastCol))
-    Case "ClientList"
-        LastRow = WS.Cells(Rows.Count, SetColl("KlientCol").Val).End(xlUp).Row
-        If LastRow < SetColl("StartRow").Val Then EmergencyExit ("Програмата не открива клиентите на лист 'Razpredelqne'. Колона 'Обект' изглежда да е празна.")
-        getPresetData = GetArray(WS, SetColl("StartRow").Val, 1, LastRow, SetColl("LastCol").Val)
-        
 End Select
 
 If AddToDS Then Call AddDatasource(DS, Context, getPresetData, ForceReset)
@@ -223,27 +210,27 @@ If StartRowInfo = 0 Then
     Next i
     StartRowInfo = StartRow
 End If
-    If Not ObjectIsInCollection(DS, "OrderStartRow") Then
-        DS.Add getNewBean("OrderStartRow", StartRowInfo), "OrderStartRow"
-        Else: DS("OrderStartRow").Val = StartRowInfo
+    If Not ObjectIsInCollection(DS("Mark"), "OrderStartRow") Then
+        DS("Mark").Add getNewBean("OrderStartRow", StartRowInfo), "OrderStartRow"
+        Else: DS("Mark").Item("OrderStartRow").Val = StartRowInfo
     End If
 If LastRowInfo = 0 Then
     LastRow = ERPSheet.Cells(Rows.Count, 1).End(xlUp).Row
     If LastRow < StartRow Then Call EmergencyExit("Програмата не намира изделия на листа със заявките (От колона A)")
     LastRowInfo = LastRow
 End If
-    If Not ObjectIsInCollection(DS, "OrderLastRow") Then
-        DS.Add getNewBean("OrderLastRow", LastRowInfo), "OrderLastRow"
-        Else: DS("OrderLastRow").Val = LastRowInfo
+    If Not ObjectIsInCollection(DS("Mark"), "OrderLastRow") Then
+        DS("Mark").Add getNewBean("OrderLastRow", LastRowInfo), "OrderLastRow"
+        Else: DS("Mark").Item("OrderLastRow").Val = LastRowInfo
     End If
 If LastColInfo = 0 Then
     LastCol = Nastr.Item("ERPMark").Item("LastCol").Val
     If LastCol <= 1 Then Call EmergencyExit("Програмата не намира правилните настройки за маркировка на листа с поръчки. Невалиден параметър за последната колона")
     LastColInfo = LastCol
 End If
-    If Not ObjectIsInCollection(DS, "OrderLastCol") Then
-        DS.Add getNewBean("OrderLastCol", LastColInfo), "OrderLastCol"
-        Else: DS("OrderLastCol").Val = LastColInfo
+    If Not ObjectIsInCollection(DS("Mark"), "OrderLastCol") Then
+        DS("Mark").Add getNewBean("OrderLastCol", LastColInfo), "OrderLastCol"
+        Else: DS("Mark").Item("OrderLastCol").Val = LastColInfo
     End If
 
 Exit Sub
