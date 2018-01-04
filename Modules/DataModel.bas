@@ -5,7 +5,10 @@ If Datasources Is Nothing Then Set Datasources = New Collection
     If ObjectIsInCollection(Datasources, Key) Then
         If Overwrite Then Datasources.Remove (Key) Else: Exit Sub
     End If
-    Datasources.Add getNewBean(Key, DataIn), Key
+    If IsObject(DataIn) Then
+        Datasources.Add DataIn, Key
+    Else: Datasources.Add getNewBean(Key, DataIn), Key
+    End If
 Exit Sub
 End Sub
 'Public Sub OverwriteDatasource(Category As String, Context As String, Value As Variant)
@@ -52,6 +55,8 @@ Public Function GetPresetCollection(Context As String, Optional ForceReset As Bo
     Dim i As Long
     Dim Parameters As Variant
     Dim queryName As String, queryType As Variant, KeyString As String
+    Dim WS As Worksheet
+    Dim StartRow As Long, LastCol As Long, LastRow As Long
 On Error GoTo ErrHandler
 If Not IsInitialized Then Call Inicial_Main
 
@@ -70,8 +75,15 @@ Select Case Context
         Parameters = Array(CDbl(CDate(CheckedValue("date", False, DS("SpeditionDate").Val))), 1, 0)
         queryName = "selectStopsForSpecificDate"
         queryType = adCmdStoredProc
+    Case "IgnoreList"
+        Set GetPresetCollection = New Collection
+        Set WS = ExSheet
+        StartRow = 2
+        LastCol = 1
+        LastRow = WS.Cells(Rows.Count, 1).End(xlUp).Row
     Case "WS_Order_Clients"
         Set MarkNastr = Nastr("ERPMark")
+
         
 End Select
 '=============================================
@@ -111,6 +123,14 @@ Select Case Context
                     End If
                 End If
             Next i
+    Case "IgnoreList"
+        LocalData = WS.Range(WS.Cells(StartRow, 1), WS.Cells(LastRow, LastCol))
+        For i = LBound(LocalData) To UBound(LocalData)
+            KeyString = CStr(LocalData(i, 1))
+            If Not ValueIsInCollection(GetPresetCollection, KeyString) Then
+                GetPresetCollection.Add KeyString, KeyString
+            End If
+        Next i
     
     Case "DBSavedStops_FilteredUnloadPlaces"
         Set GetPresetCollection = GetFilteredCollection(GetPresetCollection("DBSavedStops"), Context)    'Recursive Filtering a new collection: Unloading places only
