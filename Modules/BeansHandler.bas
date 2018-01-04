@@ -19,9 +19,9 @@ End Sub
 Public Sub Inicial_Main()
     Dim StartRowCol As Collection
 
-Call InicialWS(NTSheet, "NarTovar")
-Call InicialWS(ERPSheet, "Tovarene")
-Call InicialWS(RAZPSheet, "Razpredelqne")
+Call InicialWS(NTSheet, "Sheet1")
+Call InicialWS(ERPSheet, "Sheet2")
+Call InicialWS(RAZPSheet, "Sheet3")
 Call InicialWS(NastrSheet, "Nastrojki")
 
 Set StartRowCol = Collection_Nastrojki_Edna_Kolona("#Content", "#ContentEnd", "LastCol", 2, NastrSheet, 1)
