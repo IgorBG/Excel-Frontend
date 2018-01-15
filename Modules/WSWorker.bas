@@ -1,113 +1,50 @@
-Attribute VB_Name = "WSWorker"
-Public Function CheckTemplate() As String
-If Not IsInitialized Then Call Inicial_Main
- If Not Len(PrintTemplateString) = 0 Then CheckTemplate = PrintTemplateString: Exit Function
- CheckTemplate = OSheet.Range(Nastr.Item("OrdMark").Item("TmpltCell").Stojnost).Value
- If Len(CheckTemplate) = 0 Then Call EmergencyExit("Íå å èçáðàí øàáëîí çà ïå÷àò. Ìîëÿ, ïúðâî èçáåðåòå åäèí îò äîñòúïíèòå øàáëîíè çà ïå÷àò íà ñòðàíèöàòà ñ ïîðú÷êèòå")
-End Function
-
-Public Sub PutTemplateInfo(ByVal TemplateStr As String)
-If Not IsInitialized Then Call Inicial_Main
-    PrintTemplateString = TemplateStr
-    OSheet.Range(Nastr.Item("OrdMark").Item("TmpltCell").Stojnost).Value = TemplateStr
+Private Sub CleanPrint(ByVal WS As Worksheet, Source As Variant, StartRow As Long, StartCol As Long, LastRow As Long, LastCol As Long, Optional Transpose As Boolean)
+Dim EventsTriger As Boolean
+'TODO: Ð”Ð¾Ð±Ð°Ð²Ð¸ Ð»Ð¸Ð¼Ð¸Ñ‚Ð° Ð½Ð° Ñ€ÐµÐ·ÑƒÐ»Ñ‚Ð°Ñ‚Ð¸Ñ‚Ðµ Ð¾Ñ‚ Ñ‚ÑŠÑ€ÑÐµÐ½ÐµÑ‚Ð¾ ÐºÑŠÐ¼ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸Ñ‚Ðµ
+EventsTriger = Application.EnableEvents
+Application.EnableEvents = False
+With WS.Range(WS.Cells(StartRow, StartCol), WS.Cells(LastRow, LastCol))
+    .ClearContents
+    .ClearContents  ' Ð°ÐºÐ¾ Ð¸Ð¼Ð° Ñ„Ð¸Ð»Ñ‚Ñ€Ð¸ Ð²ÑŠÑ€Ñ…Ñƒ Ð»Ð¸ÑÑ‚Ð°, Ð½Ðµ Ð²ÑÐ¸Ñ‡ÐºÐ¾ ÑÐµ Ð¸Ð·Ñ‚Ñ€Ð¸Ð²Ð° Ð¾Ñ‚ Ð¿ÑŠÑ€Ð²Ð¸ Ð¿ÑŠÑ‚
+    .ClearFormats
+End With
+    
+    If IsArray(Source) Then
+        If UBound(Source, 2) > 65000 Then Call EmergencyExit("ÐŸÑ€ÐµÐºÐ°Ð»ÐµÐ½Ð¾ Ð¼Ð½Ð¾Ð³Ð¾ Ñ€ÐµÐ·ÑƒÐ»Ñ‚Ð°Ñ‚Ð¸ Ð·Ð° Ð¿Ð¾ÐºÐ°Ð·Ð²Ð°Ð½Ðµ (" & UBound(Source, 2) & " Ð¿Ñ€Ð¸ Ð»Ð¸Ð¼Ð¸Ñ‚ 65000). Ð¡Ð²Ð¸Ð¹Ñ‚Ðµ ÐºÑ€Ð¸Ñ‚ÐµÑ€Ð¸Ð¸Ñ‚Ðµ Ð·Ð° Ñ‚ÑŠÑ€ÑÐµÐ½ÐµÑ‚Ð¾ Ð·Ð° Ð´Ð° ÑÑŠÐºÑ€Ð°Ñ‚Ð¸Ñ‚Ðµ Ð±Ñ€Ð¾Ñ Ð½Ð° Ñ€ÐµÐ·ÑƒÐ»Ñ‚Ð°Ñ‚Ð¸Ñ‚Ðµ.")
+        Call PrintArray(Source, WS.Cells(StartRow, StartCol), Transpose)
+    End If
+Application.EnableEvents = EventsTriger
+End Sub
+Public Sub PrintArray(v As Variant, rng As Range, Optional Transpose As Boolean)
+    If Not IsArray(v) Then Exit Sub
+        Select Case Transpose
+            Case True: rng.Resize(UBound(v, 2) - LBound(v, 2) + 1, UBound(v, 1) - LBound(v, 1) + 1) = TransposeArray(v)
+            Case False: rng.Resize(UBound(v, 1) - LBound(v, 1) + 1, UBound(v, 2) - LBound(v, 2) + 1) = v
+        End Select
 End Sub
 
-Public Sub ClearPages()
+Public Sub ClearPages(ByVal WS As Worksheet, Optional StartRow As Long = 1, Optional clearShapes As Boolean = False, Optional ShapeTag As String)
     Dim i As Long, LastRow As Long
-    Dim Rng As Range
+    Dim rng As Range
 On Error GoTo ErrHandler
 If Not IsInitialized Then Call Inicial_Main
 Call Optimization_ON
-    i = Nastr.Item("OrdMark").Item("StartRow").Stojnost 'Èç÷èñòâà âïèñàíàòà èíôîðìàöèÿ â ëèñò Porychki
     LastRow = 65536
-    OSheet.Rows(i & ":" & LastRow).ClearContents
-    OSheet.Rows(i & ":" & LastRow).ClearFormats
-    i = Nastr.Item("PakMark").Item("StartRow").Stojnost 'Èç÷èñòâà âïèñàíàòà èíôîðìàöèÿ â ëèñò Paketi
-    LastRow = 65536
-    PakSheet.Rows(i & ":" & LastRow).ClearContents
-    PakSheet.Rows(i & ":" & LastRow).ClearFormats
-    PrintSheet.Cells.ClearContents 'Èç÷èñòâà âïèñàíàòà èíôîðìàöèÿ â øàáëîíà íà åòèêåòà
+    WS.Rows(StartRow & ":" & LastRow).ClearContents
+    WS.Rows(StartRow & ":" & LastRow).ClearFormats
+    If clearShapes Then
         Dim shp As Shape
         For Each shp In PrintSheet.Shapes
-         If shp.Name Like "*Picture*" Then shp.Delete
+         If shp.name Like "*" & ShapeTag & "*" Then shp.Delete
         Next shp
-Call PutTemplateInfo(vbNullString)
+    End If
 Call Optimization_OFF
 
 Exit Sub
 
-
 ErrHandler:
-Call EmergencyExit("Ïðîãðàìàòà íå óñïÿ äà èç÷èñòè ñúäúðæàíèåòî íà ñòðàíèöèòå")
+Call EmergencyExit("ÐŸÑ€Ð¾Ð³Ñ€Ð°Ð¼Ð°Ñ‚Ð° Ð½Ðµ ÑƒÑÐ¿Ñ Ð´Ð° Ð¸Ð·Ñ‡Ð¸ÑÑ‚Ð¸ ÑÑŠÐ´ÑŠÑ€Ð¶Ð°Ð½Ð¸ÐµÑ‚Ð¾ Ð¾Ñ‚ Ð»Ð¸ÑÑ‚ " & WS.name)
 End Sub
-
-
-Public Sub ApproveOrderPaketazhFromMenu()
-If Not IsInitialized Then Call Inicial_Main
-    Dim OrdersCol As New Collection
-    Dim cell As Range
-    Dim TmpStr As String
-'Ïðîâåðÿâà ìàðêèðàíîòî îò ïîòðåáèòåëÿ. Àêî å ìàðêèðàë íÿêîëêî ïîðú÷êè íàâåäíúæ ãî ñïèðà (Ùîì å çàáðàíåíî ïàêåòíîòî ïîòâúðæäàâàíå íà ïîðú÷êèòå).
-For Each cell In Selection.Rows
-    TmpStr = PakSheet.Cells(cell.Row, Nastr.Item("PakMark").Item("OrdNumCol").Stojnost).Value
-    If Not ValueIsInCollection(OrdersCol, TmpStr) Then OrdersCol.Add TmpStr, TmpStr
-    If OrdersCol.Count > 1 Then
-        Call EmergencyExit("Ìàðêèðàëè ñòå ïîâå÷å îò åäèí íîìåð ïîðú÷êà. Ïîðú÷êèòå òðÿáâà äà ñå ïîòâúðæäàâàò åäíà ïî åäíà.")
-    End If
-Next cell
-
-For Each cell In Selection.Rows
-    PakSheet.Cells(cell.Row, Nastr.Item("PakMark").Item("PktzhCol").Stojnost).Font.ColorIndex = 1
-    PakSheet.Cells(cell.Row, Nastr.Item("PakMark").Item("ApprvdPzh").Stojnost).Value = "TRUE"
-Next cell
-Exit Sub
-
-Err_Handler:
-    Call EmergencyExit("Èçáðàííèÿò ïàêåòàæ íå ìîæå äà ñå ïîòâúðäè. Àêî íèùî íå ïîìàãà, ùå ñå íàëîæè òîé äà áúäå èçòðèò îò ñïèñúêà.")
-
-End Sub
-
-Public Sub ExportCSV()
-    Dim sOutput As String
-    Dim fName As String, lFnum As Long
-    Dim cPak As Collection
-    Dim LocalData As Variant
-    Dim i As Long, j As Long, b As Long
-    Dim LastRow As Long
-    Const DELIMITER = ";"
-    Const FILEFLTR = "CSV Files (*.csv), *.csv"
-If Not IsInitialized Then Call Inicial_Main
-b = 1 'Base for MS Office
-On Error GoTo ErrHandler
-Set cPak = Nastr.Item("PakMark")
-LastRow = PakSheet.Cells(Rows.Count, cPak("QntyEtikCol").Stojnost).End(xlUp).Row
-If LastRow = cPak("StartRow").Stojnost Then GoTo EmptyListExit
-LocalData = PakSheet.Range(PakSheet.Cells(cPak("StartRow").Stojnost, 1), PakSheet.Cells(LastRow, cPak("LastCol").Stojnost))
-
-    lFnum = FreeFile
-    fName = Application.GetSaveAsFilename(FileFilter:=FILEFLTR)
-    If Not fName = "False" Then
-        Open fName For Output As lFnum
-            For i = LBound(LocalData, b) To UBound(LocalData, b)
-                For j = LBound(LocalData, b + 1) To UBound(LocalData, b + 1)
-                    sOutput = sOutput & CStr(LocalData(i, j)) & DELIMITER
-                Next j
-                sOutput = Left(sOutput, Len(sOutput) - Len(DELIMITER))
-                Print #lFnum, sOutput
-                sOutput = vbNullString
-            Next i
-        Close lFnum
-    End If
-Exit Sub
-
-EmptyListExit:
-Call EmergencyExit("Ïðîãðàìàòà íå âèæäà äà èìà äàííè íà ëèñò Paketi. Ìîëÿ çàïàçåòå ãè ðú÷íî. Àêî ïðîáëåìúò ñå ïîâòàðÿ - äîêëàäâàéòå çà ïðîáëåìà.")
-Exit Sub
-ErrHandler:
-Call EmergencyExit("Ïðîáëåì ïðè çàïàçâàíå íà äàííèòå â CSV ôàéë. Ìîëÿ çàïàçåòå äàííèòå ðú÷íî. Àêî ïðîáëåìúò ñå ïîâòàðÿ - äîêëàäâàéòå çà ïðîáëåìà.")
-Exit Sub
-End Sub
-
 
 Public Sub DeleteUserMenu()
     Dim CntxMenu As CommandBar
@@ -118,24 +55,187 @@ For Each UserMenu In CntxMenu.Controls
 Next UserMenu
 End Sub
 
-Function GetPartsArray() As Variant ' Collect parts from WS and convert it into 2D-array
-If Not IsInitialized Then Inicial_Main
+Public Sub SortClients()
+Dim TempRange As Range, ClNastr As Collection
 Dim LastRow As Long
-LastRow = SpecSheet.Cells(Rows.Count, ERPNastrCol("Det_kr_ime").Stojnost).End(xlUp).Row
-Select Case LastRow
-    Case 0, 1, 65536
-        Set GetPartsArray = Nothing: Exit Function
-    Case Else
-        GetPartsArray = SpecSheet.Range(SpecSheet.Cells(ERPNastrCol("StartRow").Stojnost, ERPNastrCol("FirstCol").Stojnost), SpecSheet.Cells(LastRow, ERPNastrCol("LastCol").Stojnost))
-        Exit Function
-End Select
+If Not IsInitialized Then Call Inicial_Main
+On Error GoTo ErrHandler
+    Set ClNastr = Nastr("RazpredKlientiMark")
+    LastRow = RAZPSheet.Cells(Rows.Count, ClNastr("ObektCol").Val).End(xlUp).Row
+    If LastRow > ClNastr("StartRow").Val Then
+        Set TempRange = RAZPSheet.Range(RAZPSheet.Cells(ClNastr("StartRow").Val, 1), RAZPSheet.Cells(LastRow, ClNastr("LastCol").Val))
+        TempRange.Sort Key1:=RAZPSheet.Cells(ClNastr("StartRow").Val, 1), Order1:=xlAscending, _
+                                    Key2:=RAZPSheet.Cells(ClNastr("StartRow").Val, 2), Order2:=xlAscending, _
+                                    Key3:=RAZPSheet.Cells(ClNastr("StartRow").Val, 4), Order3:=xlAscending, _
+                                    Header:=xlNo, OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
+                                    DataOption1:=xlSortNormal, DataOption2:=xlSortNormal, DataOption3:=xlSortNormal
+    End If
+Exit Sub
+
+ErrHandler:
+Call EmergencyExit("Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ SortClients")
+End Sub
+
+Public Sub InsertBlok(ByRef TransRange As Range, ByRef DestinRange As Range, Optional ByRef NewLastRow As Long)
+TransRange.Copy Destination:=DestinRange
+NewLastRow = DestinRange.Row + TransRange.Rows.Count - 1
+End Sub
+
+
+Public Sub SetColumnWidth()
+If Not IsInitialized Then Call Inicial_Main
+    Dim v As Variant, SColl As Collection
+    Set SColl = Nastr("TovarGACols")
+        For Each v In SColl
+            TGASheet.Columns(CInt(v.Prop)).ColumnWidth = getColWidth(v.Val, v.Prop, TGASheet)
+        Next v
+    TGASheet.Columns("A:P").Copy
+    TMASheet.Columns("A:P").PasteSpecial Paste:=xlPasteColumnWidths, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+End Sub
+        
+        Public Sub SetRngFormat(ByRef rRng As Range, InString As String)
+            Dim vSplit() As String, i As Long
+            vSplit = Split(LCase(InString), ";")
+            With rRng
+                For i = LBound(vSplit) To UBound(vSplit)
+                    Select Case vSplit(i)
+                        Case "hc": .HorizontalAlignment = xlCenter: GoTo NextFormat
+                        Case "hr": .HorizontalAlignment = xlRight: GoTo NextFormat
+                        Case "hl": .HorizontalAlignment = xlLeft: GoTo NextFormat
+                        Case "vc": .VerticalAlignment = xlCenter: GoTo NextFormat
+                        Case "vb": .VerticalAlignment = xlBottom: GoTo NextFormat
+                        Case "vt": .VerticalAlignment = xlTop: GoTo NextFormat
+                        Case "ei": .Font.Italic = True: GoTo NextFormat
+                        Case "eb": .Font.Bold = True: GoTo NextFormat
+                        Case "eu": .Font.Underline = True: GoTo NextFormat
+                        Case "m": .Merge: GoTo NextFormat
+                        Case "ww": .WrapText = True: GoTo NextFormat
+                        Case "ft": .NumberFormat = "@": GoTo NextFormat
+                        Case "color:grey": .Interior.ColorIndex = 16: GoTo NextFormat
+                        Case Else: EmergencyExit ("ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚ÐµÐ½ Ñ‚Ð¸Ð¿ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚ '" & vSplit(i) & "', Ð¿Ð¾ÑÐ¾Ñ‡ÐµÐ½ Ð² Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸Ñ‚Ðµ. Ð¦ÐµÐ»Ð¸ÑÑ‚ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚:" & InString)
+NextFormat:
+                    End Select
+                Next i
+            End With
+        End Sub
+        Public Sub SetBorder(ByRef rRng As Range, InString As String)
+            Dim vSplit() As String, i As Long
+            vSplit = Split(LCase(InString), ";")
+            With rRng
+                For i = LBound(vSplit) To UBound(vSplit)
+                    Select Case vSplit(i)
+                        Case "o"    'outside border only
+                            .Borders(xlEdgeLeft).LineStyle = xlContinuous
+                            .Borders(xlEdgeRight).LineStyle = xlContinuous
+                            .Borders(xlEdgeBottom).LineStyle = xlContinuous
+                            .Borders(xlEdgeTop).LineStyle = xlContinuous
+                        Case "e": .Borders.LineStyle = xlContinuous ' each edge border
+                        Case Else: EmergencyExit ("ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ð° Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ° Ð·Ð° Ñ€Ð°Ð·Ñ‡ÐµÑ€Ñ‚Ð°Ð²Ð°Ð½Ðµ Ð½Ð° Ð³Ñ€Ð°Ð½Ð¸Ñ†Ð¸Ñ‚Ðµ Ð½Ð° ÐºÐ»ÐµÐºÑ‚Ð¸Ñ‚Ðµ '" & vSplit(i) & "', Ð¿Ð¾ÑÐ¾Ñ‡ÐµÐ½ Ð² Ð¾Ð¿Ð¸ÑÐ°Ð½Ð¸ÐµÑ‚Ð¾ Ð½Ð° ÑˆÐ°Ð±Ð»Ð¾Ð½Ð° Ð·Ð° Ð¿ÐµÑ‡Ð°Ñ‚. Ð¦ÐµÐ»Ð¸ÑÑ‚ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚:" & InString)
+                    End Select
+                Next i
+            End With
+        End Sub
+
+        
+        Public Function getColWidth(ByVal Target_Width As Double, ByVal col As Byte, WS As Worksheet) As Double
+            Dim TempBool As Boolean
+            Dim ratio As Double
+            Dim Init_Width As Double, Dot_Step As Double, StepsToTarget As Double
+        TempBool = Application.ScreenUpdating
+        Application.ScreenUpdating = False
+        With WS
+            If Target_Width = 0 Then .Columns(col).ColumnWidth = 0: GoTo Ready
+            If .Columns(col).Width = Target_Width Then GoTo Ready
+
+            Init_Width = .Columns(col).Width
+            .Columns(col).ColumnWidth = .Columns(col).ColumnWidth + 0.1
+            Dot_Step = .Columns(col).Width - Init_Width
+            StepsToTarget = (Target_Width - .Columns(col).Width) / Dot_Step
+            .Columns(col).ColumnWidth = .Columns(col).ColumnWidth + (0.1 * StepsToTarget)
+            
+            ratio = Target_Width / .Columns(col).Width
+            .Columns(col).ColumnWidth = .Columns(col).ColumnWidth * ratio
+            
+            While .Columns(col).Width > Target_Width
+                .Columns(col).ColumnWidth = .Columns(col).ColumnWidth - 0.1
+            Wend
+            While .Columns(col).Width < Target_Width
+                .Columns(col).ColumnWidth = .Columns(col).ColumnWidth + 0.1
+            Wend
+Ready:
+            getColWidth = .Columns(col).ColumnWidth
+        End With
+        Application.ScreenUpdating = TempBool
+        End Function
+
+Public Function RangepoID(IndicateString As String) As Range
+If Not IsInitialized Then Call Inicial_Main
+Const FRString As String = "#Start", LCString As String = "#Lcol", LRCString As String = "#Lrow"
+Dim h As Long, i As Long, j As Long, k As Long
+Dim TempStr As String
+Dim NastrLastRow As Long
+NastrLastRow = NastrSheet.Cells(Rows.Count, 1).End(xlUp).Row
+
+For i = 1 To NastrLastRow
+    If NastrSheet.Cells(i, 1).Value = IndicateString Then
+        For h = i + 1 To NastrLastRow
+            If NastrSheet.Cells(h, 1).Value = FRString Then
+                For j = 1 To NastrSheet.Cells(h, Columns.Count).End(xlToLeft).Column
+                    If NastrSheet.Cells(h, j).Value = LCString Then
+                        For k = h + 1 To 65536
+                            If NastrSheet.Cells(k, j).Value = LRCString Then
+                                TempStr = NastrSheet.Cells(k - 1, j - 1).Address
+                                GoTo SuccesExit
+                            End If
+                        Next k
+                        GoTo ErrExit
+                    End If
+                Next j
+                GoTo ErrExit
+            End If
+        Next h
+        GoTo ErrExit
+    End If
+Next i
+
+ErrExit:
+    MsgBox "ÐÐµ Ð¼Ð¾Ð³Ð° Ð´Ð° Ð½Ð°Ð¼ÐµÑ€Ñ Ð³Ñ€Ð°Ð½Ð¸Ñ†Ð¸ Ð½Ð° Ð±Ð»Ð¾ÐºÐ° Ñ Ð¸Ð¼Ðµ " + IndicateString + _
+            " Ð¾Ñ‚ Ñ€Ð°Ð±Ð¾Ñ‚Ð½Ð¸Ñ Ð»Ð¸ÑÑ‚ Ñ Ð¸Ð¼Ðµ " + NastrSheet.name + "."
+    Set RangepoID = NastrSheet.Range("$B$1:$B$1")
+    Exit Function
+
+SuccesExit:
+Set RangepoID = NastrSheet.Range("$B$" & h & ":" & TempStr)
+
 End Function
 
-Public Sub PrintArray(v As Variant, Rng As Range, Optional Transpose As Boolean, Optional addBase As Long)
-    If Not IsArray(v) Then Exit Sub
-        Select Case Transpose
-            Case True: Rng.Resize(UBound(v, 2) + addBase, UBound(v, 1) + addBase) = WorksheetFunction.Transpose(v)
-            Case False: Rng.Resize(UBound(v, 1) + addBase, UBound(v, 1) + addBase) = v
-        End Select
-End Sub
+
+
+Public Function IsMarkedParticularRange(ByVal Marked As Range, Optional ByVal CheckCol As Long, _
+                                Optional ByVal StartRow As Long, Optional ByVal LastRow As Long) As Boolean
+    Dim RngCell As Range
+IsMarkedParticularRange = False
+If CheckCol > 0 Then
+    For Each RngCell In Selection.Rows
+        If Not RngCell.Column = CheckCol Then GoTo FalseExit
+    Next RngCell
+End If
+If StartRow > 0 Then
+    For Each RngCell In Selection.Rows
+        If RngCell.Row < StartRow Then GoTo FalseExit
+    Next RngCell
+End If
+If LastRow > 0 Then
+    For Each RngCell In Selection.Rows
+        If RngCell.Row > LastRow Then GoTo FalseExit
+    Next RngCell
+End If
+    'Here code will executes if only if it is needed range
+        IsMarkedParticularRange = True
+        Exit Function
+            
+FalseExit:
+Exit Function
+
+End Function
 
