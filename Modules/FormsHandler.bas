@@ -1,80 +1,262 @@
 Attribute VB_Name = "FormsHandler"
 Option Explicit
-Public Sub ChoozeObektClient()
-'�������� �� ����� �� ���������� ����� �� �������
-    Dim SF As Object
-    Dim i As Long
-    Dim ERPName As String
-If Not IsInitialized Then Call Inicial_Main
-    
-    ERPName = OSheet.Cells(RowClicked, Nastr.Item("OrdMark").Item("ERPKlientCol").Stojnost).Value
-On Error GoTo ErrHandler
-Set SF = New SearchForm
-    Call SF.Constructor(250, 200, "����� ��������� �����", "�������� ���������� ����� �� ���������� " & ERPName, 2)
-        SF.TBSearchText.Visible = False
-        SF.HeadText.Height = SF.HeadText.Height + SF.TBSearchText.Height
-        SF.LBResultList.ColumnWidths = "120;100"
-        SF.btnOption1.Visible = True: SF.btnOption1.Caption = "New"
-BackToForm:
-        If SF.LBResultList.ListCount = 0 Then Call SF.PopulateListBoxWithFromAccessDB(SF.LBResultList, Nastr.Item("PaketiDB").Item("PaketiDBPath").Stojnost, "SELECT ObektIme, ObektGrad FROM KlientiObekti WHERE KlientERPIme = '" & ERPName & "' AND Aktiven =TRUE ORDER BY ObektGrad;", SF.LBResultList.ColumnCount)
-        SF.LBResultList.SetFocus
-        SF.Show
-            If IsError(SF.EventLog) Then GoTo EmptyExit
-            Select Case SF.EventLog
-                Case "OK"
-                    If SF.LBResultList.ListCount = 0 Then GoTo EmptyExit
-                        For i = LBound(SF.LBResultList.List) To UBound(SF.LBResultList.List)
-                            If SF.LBResultList.Selected(i) Then
-                                OSheet.Cells(RowClicked, Nastr.Item("OrdMark").Item("EtiketKlntCol").Stojnost).Value = SF.LBResultList.List(SF.LBResultList.ListIndex)
-                                OSheet.Cells(RowClicked, Nastr.Item("OrdMark").Item("GradCol").Stojnost).Value = SF.LBResultList.List(SF.LBResultList.ListIndex, 1)
-                                Exit For
-                            End If
-                        Next i
-                Case "OB1_Click"
-                    SF.Hide
-                    NewObektGradForm.Show  'TODO: Call macro that shows new client/object input
-                        If Not SF.LBResultList.ListCount = 0 Then SF.LBResultList.Clear
-                    GoTo BackToForm
-            End Select
-        Set SF = Nothing
-Exit Sub
-EmptyExit:
-    Set SF = Nothing
-   Call UserExit: Exit Sub
-ErrHandler:
-    Set SF = Nothing
-    Call EmergencyExit("������ ��� ���� �� ����� �� ���������� ����� �� ���������")
-End Sub
 
-Private Sub InputArticleWindow()
-Dim InputForm As StdInputForm
-On Error GoTo Err_Handler
-Set oSpec = New CSpec
-    Set InputForm = New StdInputForm
-    With InputForm
-        .btnOB1Main.Visible = False
-        .lblTxtInput1Main.Visible = True: .lblTxtInput1Main.Caption = "��� �� ������������ *"
-        .txtInput1Main.Value = ERP_ImeIzdelie(SpecSheet.Cells(ERPNastrCol.Item("StartRow").Stojnost, ERPNastrCol.Item("Det_pyl_ime").Stojnost).Value)
-        .lblTxtInput2Main.Visible = True: .lblTxtInput2Main.Caption = "������ ���������"
-        .txtInput2Main.Visible = True
-        .lblTxtInput3Main.Visible = True: .lblTxtInput3Main.Caption = "������ �� ��� ������������:"
-        .txtInput3Main.Visible = True
-        .check1Main.Caption = "����� �������": .check1Main.Visible = True
-        .Show 'Opens the pop-up window. Declaring the names and other details on the specification
-    End With
-        Select Case InputForm.EventLog
-            Case "OK"
-                oSpec.Name = InputForm.txtInput1Main.Value
-                oSpec.Descr = InputForm.txtInput2Main.Value
-                oSpec.isCompleteArt = InputForm.check1Main.Value
+Private Sub PopulateListControlWithArray(ByVal DataIn As Variant, ByRef ListControl As Object)
+If Not IsEmpty(DataIn) Then
+    ListControl.Clear
+    ListControl.ColumnCount = UBound(DataIn, 2) - LBound(DataIn, 2) + 1
+    ListControl.List = DataIn
+    ListControl.SetFocus
+End If
+End Sub
+Private Sub PopulateListControlFromRequest(ByVal DBPath, SQLQuery As String, ByRef ListControl As Object, Optional Parameters As Variant, Optional queryType As Variant = adCmdText)
+    Dim LocalData As Variant
+    LocalData = TransposeArray(GetRSData(GetNewConnToAccess(DBPath), SQLQuery, True, Parameters, queryType))
+    If IsArray(LocalData) Then Call PopulateListControlWithArray(LocalData, ListControl)
+End Sub
+Public Sub LoadPictureToForm(ByRef ImageCntrl As Image, FilePath As String)
+    ImageCntrl.PictureSizeMode = fmPictureSizeModeZoom
+    ImageCntrl.Picture = LoadPicture(FilePath)
+End Sub
+    Function GetStringResultViaForm(ByVal Context As String) As String
+        Dim TekForm As Object
+    If Not IsInitialized Then Call Inicial_Main
+    Set TekForm = GetFormByContext(Context)
+    TekForm.Show
+    On Error Resume Next
+    If IsEmpty(TekForm.Results) Then Exit Function
+    If TekForm.Results = vbNullString Then Exit Function
+    GetStringResultViaForm = TekForm.Results
+    End Function
+
+    Function GetResultCollectionViaForm(ByVal Context As String) As Collection
+        Dim TekForm As Object
+    If Not IsInitialized Then Call Inicial_Main
+    Set TekForm = GetFormByContext(Context)
+    TekForm.Show
+    On Error Resume Next
+    If TekForm.ResultsCollection Is Nothing Then Exit Function
+    Set GetResultCollectionViaForm = TekForm.ResultsCollection
+    End Function
+    
+
+Public Function GetFormByContext(Context As String) As Object
+    Dim TempForm As Object
+    Dim LocalData As Variant
+    Dim TempCol As Collection
+    Dim i As Long
+    Dim TempStr1 As String, TempStr2 As String
+    Dim ProdDirID As Long
+    Dim strObekt As String, strGrad As String
+    Dim DSCol As Collection
+    Dim FormWidth As Double, Caption As String, HeadText As String, ColumnWidths As String
+    Dim DBPath As String, Query As String, queryType As Variant
+
+    Dim CertainClientMode As Boolean
+    
+If Not IsInitialized Then Call Inicial_Main
+Set DSCol = Nastr.Item("Datasources")
+Select Case Context
+    
+    Case "SearchTruck"
+        FormWidth = 400
+        Caption = "Списък МПС"
+        HeadText = "Изберете МПС от списъка (рег.ном, модел, капацитет)"
+        ColumnWidths = "0;80;200;64"
+        DBPath = DSCol("DB_Transport_Path").Val
+        Query = "searchTrucksByKeyword"
+        queryType = adCmdStoredProc
+    
+    Case "SearchDriver"
+        FormWidth = 350
+        Caption = "Списък шофьори"
+        HeadText = "Изберете шофьор от списъка"
+        ColumnWidths = "180;100"
+        DBPath = DSCol("DB_Transport_Path").Val
+        Query = "searchDriversByPartOfName"
+        queryType = adCmdStoredProc
+    
+    Case "SearchLine"
+        FormWidth = 420
+        Caption = "Списък запазени маршрути"
+        HeadText = "Изберете шаблонен маршрут от списъка"
+        ColumnWidths = "80;320"
+        DBPath = DSCol("DB_Transport_Path").Val
+        Query = "searchTransportLineByKeyword"
+        queryType = adCmdStoredProc
+    
+    Case "ListRedirectedClients"
+        FormWidth = 350
+        Caption = "Списък търговски обекти"
+        HeadText = "Маркираното посещение включва разтоварване на следните търговски обекти:"
+        ColumnWidths = "180;120"
+    
+    Case "ViewUnrecognizedArticles"
+        FormWidth = 450
+        Caption = "Списък неразпознати изделия"
+        HeadText = "Долу са изредени изделия, за които програмата не разполага с данни за габарити, тегло, друго"
+        ColumnWidths = "24;400"
+    
+    Case "ViewMekaArticles"
+        FormWidth = 450
+        Caption = "Списък изделия от Мека Мебел"
+        HeadText = "Долу са изредени изделия от категория мека мебел за избрания контрагент"
+        ColumnWidths = "24;400"
+End Select
+
+
+
+
+Select Case Context
+    Case "SearchLine", "SearchTruck", "SearchDriver"
+        Set TempForm = New SearchForm
+        Call TempForm.Constructor(FormWidth, , Caption, HeadText, , Context)
+            With TempForm
+                .LBResultList.ColumnCount = UBound(Split(ColumnWidths, ";")) - LBound(Split(ColumnWidths, ";")) + 1: .LBResultList.ColumnWidths = ColumnWidths
+                .LBResultList.Font.Size = 12
+                .SearchQuery = Query: .queryType = queryType
+                Call PopulateListControlWithArray(TransposeArray(GetRSData(GetNewConnToAccess(DBPath), Query, True, TempForm.TBSearchText.Value, queryType)), TempForm.LBResultList)
+                .TBSearchText.Font.Size = 12: .TBSearchText.SetFocus
+            End With
+    
+    Case "ViewUnrecognizedArticles"
+        If RowClicked >= Nastr("RazpredKlientiMark").Item("StartRow").Val Then CertainClientMode = True
+        Set TempForm = New SearchForm
+        Call TempForm.Constructor(FormWidth, , Caption, HeadText, , Context)
+            With TempForm
+            .TBSearchText.Visible = False:  .LBResultList.ColumnCount = 2:   .LBResultList.ColumnWidths = ColumnWidths
+            LocalData = getPresetData("OrderList")  'GetOData
+                If Not IsEmpty(LocalData) Then
+                    TempForm.LBResultList.Clear
+                    If CertainClientMode Then
+                        strObekt = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("ObektCol").Val).Value
+                        strGrad = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("GradCol").Val).Value
+                    End If
+                    For i = LBound(LocalData, 1) To UBound(LocalData, 1)
+                        ProdDirID = GetProdDir(LocalData(i, Nastr("ERPMark").Item("SkladCol").Val))
+                        If Not ProdDirID = 0 Then
+                        If LocalData(i, Nastr("ERPMark").Item("PktzhCol").Val) = vbNullString Then
+                        If CertainClientMode = False Or CStr(LocalData(i, Nastr("ERPMark").Item("RaztObekt").Val)) = strObekt Then
+                        If CertainClientMode = False Or CStr(LocalData(i, Nastr("ERPMark").Item("RaztGrad").Val)) = strGrad Then
+                        Select Case ProdDirID
+                            Case 1, 2, 3, 4, 5, 6
+                            If LocalData(i, Nastr("ERPMark").Item("ObshtCenaCol").Val) > 0 Then
+                                TempForm.LBResultList.addItem CStr(LocalData(i, Nastr("ERPMark").Item("BrZaqvenoCol").Val))
+                                TempForm.LBResultList.List(TempForm.LBResultList.ListCount - 1, 1) = CStr(LocalData(i, Nastr("ERPMark").Item("NomImeCol").Val))
+                            End If
+                            Case 7, 9, 10
+                                TempForm.LBResultList.addItem CStr(LocalData(i, Nastr("ERPMark").Item("BrZaqvenoCol").Val))
+                                TempForm.LBResultList.List(TempForm.LBResultList.ListCount - 1, 1) = CStr(LocalData(i, Nastr("ERPMark").Item("NomImeCol").Val))
+                        End Select
+                        End If
+                        End If
+                        End If
+                        End If
+                    Next i
+                    TempForm.LBResultList.SetFocus
+                End If
+            End With
+    Case "ViewMekaArticles"
+        Set TempForm = New SearchForm
+        Call TempForm.Constructor(FormWidth, , Caption, HeadText, , Context)
+            With TempForm
+            .TBSearchText.Visible = False:  .LBResultList.ColumnCount = 2:   .LBResultList.ColumnWidths = ColumnWidths
+            LocalData = getPresetData("OrderList")  'GetOData
+                If Not IsEmpty(LocalData) Then
+                    TempForm.LBResultList.Clear
+                    strObekt = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("ObektCol").Val).Value
+                    strGrad = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("GradCol").Val).Value
+                    For i = LBound(LocalData, 1) To UBound(LocalData, 1)
+                        ProdDirID = GetProdDir(LocalData(i, Nastr("ERPMark").Item("SkladCol").Val))
+                        If ProdDirID = 6 Then
+                        If CStr(LocalData(i, Nastr("ERPMark").Item("RaztObekt").Val)) = strObekt Then
+                        If CStr(LocalData(i, Nastr("ERPMark").Item("RaztGrad").Val)) = strGrad Then
+                        If Not Left(CStr(LocalData(i, Nastr("ERPMark").Item("NomImeCol").Val)), 3) = "###" Then
+                                TempForm.LBResultList.addItem CStr(LocalData(i, Nastr("ERPMark").Item("BrZaqvenoCol").Val))
+                                TempForm.LBResultList.List(TempForm.LBResultList.ListCount - 1, 1) = CStr(LocalData(i, Nastr("ERPMark").Item("NomImeCol").Val))
+                        End If
+                        End If
+                        End If
+                        End If
+                    Next i
+                    TempForm.LBResultList.SetFocus
+                End If
+            End With
+    Case "ListRedirectedClients"
+        Set TempForm = New SearchForm
+        Call TempForm.Constructor(FormWidth, , , , , Context)
+            With TempForm
+            .Caption = Caption: .HeadText.Caption = HeadText
+            .TBSearchText.Visible = False:  .LBResultList.ColumnCount = 2:   .LBResultList.ColumnWidths = ColumnWidths: .LBResultList.Font.Size = 12
+            LocalData = getPresetData("OrderList")  'GetOData
+                If Not IsEmpty(LocalData) Then
+                    TempForm.LBResultList.Clear
+                    Set TempCol = New Collection
+                    strObekt = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("ObektCol").Val).Value
+                    strGrad = RAZPSheet.Cells(RowClicked, Nastr("RazpredKlientiMark").Item("GradCol").Val).Value
+                    For i = LBound(LocalData, 1) To UBound(LocalData, 1)
+                        If CStr(LocalData(i, Nastr("ERPMark").Item("RaztObekt").Val)) = strObekt Then
+                        If CStr(LocalData(i, Nastr("ERPMark").Item("RaztGrad").Val)) = strGrad Then
+                        TempStr1 = LocalData(i, Nastr("ERPMark").Item("KlientCol").Val)
+                        TempStr2 = LocalData(i, Nastr("ERPMark").Item("GradCol").Val)
+                        If Not ValueIsInCollection(TempCol, TempStr1 & " / " & TempStr2) Then
+                                TempForm.LBResultList.addItem TempStr1
+                                TempForm.LBResultList.List(TempForm.LBResultList.ListCount - 1, 1) = TempStr2
+                                TempCol.Add TempStr1 & " / " & TempStr2, TempStr1 & " / " & TempStr2
+                        End If
+                        End If
+                        End If
+                    Next i
+                    TempForm.LBResultList.SetFocus
+                End If
+            End With
+    
+    Case Else: Call EmergencyExit("Непознато действие във прозореца")
+End Select
+Set GetFormByContext = TempForm
+End Function
+
+
+Public Sub ProcessFormEvent(ByRef TekForm As Object, Optional ByRef EventMsg As String, Optional Context As String, Optional arg1 As Variant)
+    Dim myFile As Variant, targetFldr As String, SourcePath As String
+    Dim SQLstr As String
+    Dim LocalData As Variant
+    Dim i As Long
+    Dim InnerForm As Object
+    Dim SuccessBool As Boolean
+If Not IsInitialized Then Call Inicial_Main
+If EventMsg = vbNullString Then Exit Sub
+Select Case Context
+    Case "SearchTruck", "SearchDriver", "SearchLine"
+        SourcePath = Nastr.Item("Datasources").Item("DB_Transport_Path").Val
+End Select
+
+Select Case Context
+    Case "SearchTruck", "SearchDriver", "SearchLine", "ViewUnrecognizedArticles", "ViewMekaArticles", "ListRedirectedClients"
+        Select Case EventMsg
+            Case "Ok"
+                TekForm.Hide
+                If TekForm.LBResultList.ListCount = 0 Then Exit Sub
+                For i = LBound(TekForm.LBResultList.List) To UBound(TekForm.LBResultList.List)
+                    If TekForm.LBResultList.Selected(i) Then LocalData = LocalData & TekForm.LBResultList.List(i) & ",": Exit For
+                Next i
+                If IsEmpty(LocalData) Then Exit Sub
+                LocalData = Left(LocalData, Len(LocalData) - 1)
+                TekForm.Results = LocalData
+            
             Case "Cancel"
-                Call UserExit
+                TekForm.Hide
+                TekForm.Results = vbNullString
+            
+            Case "tbxSearch_Update"
+                Call PopulateListControlWithArray(TransposeArray(GetRSData(GetNewConnToAccess(SourcePath), TekForm.SearchQuery, True, TekForm.TBSearchText.Value, TekForm.queryType)), TekForm.LBResultList)
+
+            Case Else: Call EmergencyExit("Непознато действие във прозореца")
         End Select
+End Select
+ByPass:
 Exit Sub
-Err_Handler:
-    Call EmergencyExit("������� ��� ��������� �� ��������� �� ���������")
-Exit Sub
-ForceExit:
-    Call UserExit
-    End
+
+ErrHandler:
+Call EmergencyExit("Неуспешен опит при създаване на потребителски прозорец")
 End Sub
