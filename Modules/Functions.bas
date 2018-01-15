@@ -1,100 +1,125 @@
 Attribute VB_Name = "Functions"
-Public Function ValueIsInCollection(col As Collection, key As String) As Boolean
+Public Function ValueIsInCollection(col As Collection, Key As String) As Boolean
 Dim obj As Variant
 On Error GoTo err
     ValueIsInCollection = True
-    obj = col.Item(key)
+    obj = col.Item(Key)
     Exit Function
 err:
     ValueIsInCollection = False
 End Function
 
-Public Function ObjectIsInCollection(col As Collection, key As String) As Boolean
+Public Function ObjectIsInCollection(col As Collection, Key As String) As Boolean
 Dim obj As Object
 On Error GoTo err
     ObjectIsInCollection = True
-    Set obj = col.Item(key)
+    Set obj = col.Item(Key)
     Exit Function
 err:
     ObjectIsInCollection = False
 End Function
 
-Public Function IsMarkedParticularRange(ByVal Marked As Range, Optional ByVal CheckCol As Long, _
-                                Optional ByVal StartRow As Long, Optional ByVal LastRow As Long) As Boolean
-    Dim RngCell As Range
-IsMarkedParticularRange = False
-If CheckCol > 0 Then
-    For Each RngCell In Selection.Rows
-        If Not RngCell.Column = CheckCol Then GoTo FalseExit
-    Next RngCell
-End If
-If StartRow > 0 Then
-    For Each RngCell In Selection.Rows
-        If RngCell.Row < StartRow Then GoTo FalseExit
-    Next RngCell
-End If
-If LastRow > 0 Then
-    For Each RngCell In Selection.Rows
-        If RngCell.Row > LastRow Then GoTo FalseExit
-    Next RngCell
-End If
-    'Here code will executes if only if it is needed range
-        IsMarkedParticularRange = True
-        Exit Function
-            
-FalseExit:
+
+
+
+Public Function TransposeArray(myArray As Variant, Optional ShiftX As Long = 0, Optional ShiftY As Long = 0) As Variant
+Dim x As Long
+Dim Y As Long
+Dim XUpper As Long
+Dim YUpper As Long
+Dim tempArray As Variant
+If Not IsArray(myArray) Then GoTo ErrHandler
+    XLower = LBound(myArray, 2) + ShiftX
+    YLower = LBound(myArray, 1) + ShiftY
+    XUpper = UBound(myArray, 2) + ShiftX
+    YUpper = UBound(myArray, 1) + ShiftY
+    ReDim tempArray(XUpper, YUpper)
+    For x = XLower To XUpper
+        For Y = YLower To YUpper
+            tempArray(x, Y) = myArray(Y, x)
+        Next Y
+    Next x
+    TransposeArray = tempArray
 Exit Function
-
-End Function
-
-
-
-
-Public Function ExtractPartSizeFromName(ByVal ArtName As String) As Variant
-' Функцията се опитва да изкара размерите на термоплотове, термогърбове и други ПДЧ детайли от тяхното наименование
-    Dim Name As String, R As String
-    Dim PosSym As Integer, PosSym2 As Integer
-    Dim Result(0 To 2) As Double
-On Error GoTo ErrHandler
-' Подготвя номенклатурното име за обработка - почиства от отделни знаци и излишни интервали
-Name = Replace(ArtName, "-", " ")
-Name = WorksheetFunction.Trim(Name)
-' Тъй като в наименованието може няколко пъти да се срещне разделител /, ще се наложи да се тества всяко / в наименованието. или поне докато не намери такова, около което са концентрирани цифри.
-' 1. Търсим размерът, разделен с /
-PosSym = InStrRev(Name, "/")
-R = Mid(Name, PosSym + Len("/"), Len(Name) - PosSym)
-        ' 1.1 Търсим интервалът след /, за да откроим цялата дума след /
-        PosSym2 = InStr(R, " ")
-        If PosSym2 <> 0 Then
-            R = Left(R, PosSym2 - 1)
-        End If
-    '1.2. Ако получената дума състои от цифри, значи сме уцелили ширината
-    If IsNumeric(R) Then Result(1) = CDbl(R) Else Result(1) = 0
-'2. По подобен начин търсим дължината
-PosSym2 = InStrRev(Name, " ", PosSym)
-R = Mid(Name, PosSym2 + Len(" "), PosSym - PosSym2 - Len(" "))
-    If IsNumeric(R) Then Result(0) = CDbl(R) Else Result(0) = 0
-R = vbNullString
-
-'3. Търсим дебелината. по думичка "мм"
-PosSym = InStr(Name, "мм")
-If PosSym <> 0 Then
-    If Mid(Name, PosSym - 1, 1) = " " Then
-        PosSym = PosSym - 1
-    End If
-    PosSym = PosSym - 1
-    R = Left(Name, PosSym)
-PosSym2 = InStrRev(R, " ", PosSym)
-    If PosSym2 <> 0 Then
-        R = Mid(R, PosSym2 + 1, Len(R) - PosSym2)
-    End If
-    If IsNumeric(R) Then Result(2) = CDbl(R) Else Result(2) = 0
-End If
-ExtractPartSizeFromName = Result
-Exit Function
-
 ErrHandler:
-   Result(0) = 0:   Result(1) = 0:   Result(2) = 0
-ExtractPartSizeFromName = Result
+Set myArray = Nothing
+Debug.Print "Empty Array in TransposeArray Function"
 End Function
 
+Public Function GetArray(ByRef WS As Worksheet, ByVal StartRow As Long, ByVal StartCol As Long, ByVal LastRow As Long, ByVal LastCol As Long) As Variant
+GetArray = WS.Range(WS.Cells(StartRow, StartCol), WS.Cells(LastRow, LastCol))
+End Function
+
+Public Function Sum1DArray(ByVal myArray As Variant) As Double
+Dim i As Long
+    For i = LBound(myArray) To UBound(myArray)
+        Sum1DArray = Sum1DArray + myArray(i)
+    Next i
+End Function
+Public Sub Reset1DArray(ByRef myArray As Variant)
+Dim i As Long
+    For i = LBound(myArray) To UBound(myArray)
+        myArray(i) = 0
+    Next i
+End Sub
+Public Function CheckedValue(ExpVarType As String, CanNull As Boolean, ByVal Source As Variant, Optional Limit As Long = 0, Optional ReturnNullAs As Variant) As Variant
+'Processes simple validation for different ExpVarTypes
+    Const ERR_MSG_BASE As String = "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РґРѕР±Р°РІСЏРЅРµ РЅР° '"
+    Dim TempMsg As String
+    Dim SourceIsNull As Boolean
+On Error GoTo ErrHandler
+'First, check for empty string input and checks wheather Null value is acceptable
+SourceIsNull = False
+    Select Case VarType(Source)
+        Case VbVarType.vbNull: SourceIsNull = True
+        Case VbVarType.vbString: If Source = vbNullString Then SourceIsNull = True
+        Case Else: If Source = 0 Or Source = Empty Then SourceIsNull = True
+    End Select
+        
+    If SourceIsNull Then
+        If CanNull = True Then
+            If IsMissing(ReturnNullAs) Then
+                Select Case LCase(ExpVarType)
+                    Case "string": ReturnNullAs = vbNullString
+                    Case Else: ReturnNullAs = 0
+                End Select
+            End If
+        CheckedValue = ReturnNullAs:  GoTo CorrectedValue
+        Else: TempMsg = Source & "' РїСЂР°Р·РЅР° СЃС‚РѕР№РЅРѕСЃС‚ РІ Р·Р°РґСЉР»Р¶РёС‚РµР»РЅРѕС‚Рѕ РїРѕР»Рµ.": GoTo ErrHandler
+        End If
+    End If
+
+Select Case LCase(ExpVarType)
+Case "long"
+    If IsNumeric(Source) Then
+        If CLng(Source) = 0 And CanNull = False Then TempMsg = Source & "' РїСЂР°Р·РЅР° СЃС‚РѕР№РЅРѕСЃС‚ РІ Р·Р°РґСЉР»Р¶РёС‚РµР»РЅРѕС‚Рѕ РїРѕР»Рµ.": GoTo ErrHandler
+    End If
+    If IsNumeric(Source) = False And Len(Source) > 0 Then TempMsg = Source & "' РєР°С‚Рѕ С‡РёСЃР»Рѕ.": GoTo ErrHandler
+    GoTo ValueOK
+Case "string"
+    If Not Application.IsText(CStr(Source)) Then TempMsg = "' РґР°РЅРЅРёС‚Рµ РєР°С‚Рѕ С‚РµРєСЃС‚.": GoTo ErrHandler
+    If Limit > 0 Then If Len(CStr(Source)) > Limit Then Source = Left(CStr(Source), Limit)
+    GoTo ValueOK
+Case "date"
+    If Not IsDate(Source) Then TempMsg = Source & "' РєР°С‚Рѕ РґР°С‚Р°.": GoTo ErrHandler
+    If CLng(CDate(Source)) = 0 And CanNull = False Then TempMsg = Source & "' РїСЂР°Р·РЅР° СЃС‚РѕР№РЅРѕСЃС‚ РІ Р·Р°РґСЉР»Р¶РёС‚РµР»РЅРѕС‚Рѕ РїРѕР»Рµ.": GoTo ErrHandler
+    GoTo ValueOK
+Case "double"
+    If IsError(CDbl(Source)) Then TempMsg = Source & "' РєР°С‚Рѕ С‡РёСЃР»Рѕ.": GoTo ErrHandler
+    If CDbl(Source) = 0 And CanNull = False Then TempMsg = Source & "' РїСЂР°Р·РЅР° СЃС‚РѕР№РЅРѕСЃС‚ РІ Р·Р°РґСЉР»Р¶РёС‚РµР»РЅРѕС‚Рѕ РїРѕР»Рµ.": GoTo ErrHandler
+    GoTo ValueOK
+End Select
+ValueOK:
+CheckedValue = Source
+CorrectedValue:
+Exit Function
+   
+ErrHandler:
+Call EmergencyExit(ERR_MSG_BASE & TempMsg)
+End Function
+
+
+Public Function NullHandledString(ByRef InData As Variant) As String
+    'Adopted. The function avoids Null values in strings. Converting Null as "", and keepeing the same any full string
+    NullHandledString = InData & vbNullString
+End Function
