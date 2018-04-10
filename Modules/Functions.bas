@@ -22,27 +22,26 @@ End Function
 
 
 
-Public Function TransposeArray(myArray As Variant, Optional ShiftX As Long = 0, Optional ShiftY As Long = 0) As Variant
-Dim x As Long
-Dim Y As Long
-Dim XUpper As Long
-Dim YUpper As Long
-Dim tempArray As Variant
-If Not IsArray(myArray) Then GoTo ErrHandler
-    XLower = LBound(myArray, 2) + ShiftX
-    YLower = LBound(myArray, 1) + ShiftY
-    XUpper = UBound(myArray, 2) + ShiftX
-    YUpper = UBound(myArray, 1) + ShiftY
-    ReDim tempArray(XUpper, YUpper)
+Public Function TransposeArray(inArray As Variant, Optional ShiftX As Long = 0, Optional ShiftY As Long = 0) As Variant
+'The funtion transposes a 2D array and can shift the bases of X and Y in the result Array
+    Dim XLower As Long, XUpper As Long, YLower  As Long, YUpper As Long
+    Dim x As Long, y As Long
+    Dim outArray As Variant
+If Not IsArray(inArray) Then GoTo ErrHandler
+    XLower = LBound(inArray, 2)
+    YLower = LBound(inArray, 1)
+    XUpper = UBound(inArray, 2)
+    YUpper = UBound(inArray, 1)
+    ReDim outArray(XLower + ShiftX To XUpper + ShiftX, YLower + ShiftY To YUpper + ShiftY)
     For x = XLower To XUpper
-        For Y = YLower To YUpper
-            tempArray(x, Y) = myArray(Y, x)
-        Next Y
+        For y = YLower To YUpper
+            outArray(x + ShiftX, y + ShiftY) = inArray(y, x)
+        Next y
     Next x
-    TransposeArray = tempArray
+    TransposeArray = outArray
 Exit Function
 ErrHandler:
-Set myArray = Nothing
+Set inArray = Nothing
 Debug.Print "Empty Array in TransposeArray Function"
 End Function
 
@@ -50,16 +49,16 @@ Public Function GetArray(ByRef WS As Worksheet, ByVal StartRow As Long, ByVal St
 GetArray = WS.Range(WS.Cells(StartRow, StartCol), WS.Cells(LastRow, LastCol))
 End Function
 
-Public Function Sum1DArray(ByVal myArray As Variant) As Double
+Public Function Sum1DArray(ByVal inArray As Variant) As Double
 Dim i As Long
-    For i = LBound(myArray) To UBound(myArray)
-        Sum1DArray = Sum1DArray + myArray(i)
+    For i = LBound(inArray) To UBound(inArray)
+        Sum1DArray = Sum1DArray + inArray(i)
     Next i
 End Function
-Public Sub Reset1DArray(ByRef myArray As Variant)
+Public Sub Reset1DArray(ByRef inArray As Variant)
 Dim i As Long
-    For i = LBound(myArray) To UBound(myArray)
-        myArray(i) = 0
+    For i = LBound(inArray) To UBound(inArray)
+        inArray(i) = 0
     Next i
 End Sub
 Public Function CheckedValue(ExpVarType As String, CanNull As Boolean, ByVal Source As Variant, Optional Limit As Long = 0, Optional ReturnNullAs As Variant) As Variant
