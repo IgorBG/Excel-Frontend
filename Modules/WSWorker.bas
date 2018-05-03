@@ -1,3 +1,18 @@
+Attribute VB_Name = "WSWorker"
+
+Public Sub ResetWorksheet(ByRef WS As Worksheet)
+    'The script clears everything from the worksheet exept the columnwidth
+    'It brings back the normal view of the page, positioning the screen on the first row
+    WS.Activate
+    ActiveWindow.View = xlNormalView
+    WS.PageSetup.PrintArea = ""
+    ActiveWindow.ScrollRow = 1 'positioning the screen on the first row
+    WS.Cells.Clear
+    WS.Rows.EntireRow.RowHeight = WS.StandardHeight
+    WS.Cells.PageBreak = xlPageBreakNone
+    WS.Range("A1").Select
+End Sub
+
 Private Sub CleanPrint(ByVal WS As Worksheet, Source As Variant, StartRow As Long, StartCol As Long, LastRow As Long, LastCol As Long, Optional Transpose As Boolean)
 Dim EventsTriger As Boolean
 'TODO: Добави лимита на резултатите от търсенето към настройките
