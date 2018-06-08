@@ -9,16 +9,12 @@ Public ClntSheet As Worksheet     'Clients sheet
 Public ListSheet As Worksheet   'Sheet for different sheets
 Public Nastr As Collection      'All the setting in one collection
 Public SysMsg As String
-Public PrintData As Variant
+
+Public Nastr As Collection      'All the setting in one collection
+Public DS As Collection         'All Datasources in one collection
 
 Public RowClicked As Long
 Public ColClicked As Long
-
-Public PrintTemplateString As String
-Public PrintPanelReady As Boolean
-Public PrintPanelRow As Long
-Public PrintPanelCol As Long
-
 
 
 
@@ -45,14 +41,13 @@ End Sub
 
 Public Sub EmergencyExit(ErrMsg As String)
 Call Optimization_OFF
+Call ResetInicialization
 IsInitialized = False
-PrintPanelReady = False
-MsgBox "Програмата е спряна. Причина: " & ErrMsg: End
+MsgBox "РџСЂРѕРіСЂР°РјР°С‚Р° Рµ СЃРїСЂСЏРЅР°. РџСЂРёС‡РёРЅР°: " & ErrMsg: End
 End Sub
 Public Sub UserExit()
 Call Optimization_OFF
 IsInitialized = False
-PrintPanelReady = False
 End
 End Sub
 
