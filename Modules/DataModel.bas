@@ -167,29 +167,48 @@ End Function
 Public Function getPresetData(Context As String, Optional ForceReset As Boolean = False, Optional AddToDS As Boolean = True) As Variant
     Dim WS As Worksheet
     Dim StartRow As Long, LastRow As Long, LastCol As Long
-    Dim SetColl As Collection
+    Dim LocalData As Variant, TempVar1 As Variant
+    Dim conn As ADODB.Connection
+    Dim i As Long
+    Dim Parameters As Variant
+    Dim queryName As String, queryType As Variant, KeyString As String
+    Dim SetColl As Collection, TempCol As Collection
+    Dim TempStr As String
 On Error GoTo ErrHandler
 If Not IsInitialized Then Call Inicial_Main
 
-'First check whether the datasource is already in cache
-
-If Not ForceReset Then
+If Not ForceReset Then 'First check whether the datasource is already in cache
     Select Case Context
-        Case "OrderList"
+        Case "EXAMPLE_always_reset"  'Some datasource that always should be reseted
+        Case Else                      'datasources that allowed to be taken from cache
             If ObjectIsInCollection(DS, Context) Then getPresetData = DS(Context).Val: Exit Function
     End Select
 End If
 '====== Settings related to the context ======
 Select Case Context
-    Case "OrderList"
-        Set WS = ERPSheet
-        Set SetColl = Nastr("ERPMark")
+    Case "SampleDataFromWS"
+        Set WS = SampleSheet
+        Set SetColl = Nastr("SampleSheetMark")
+    Case "ClientData"
+        Set WS = AnotherSheet
+        Set SetColl = Nastr("AnotherSheetMark")
+        StartRow = SetColl("StartRow").Val
+        LastCol = SetColl("LastCol").Val
+        LastRow = WS.Cells(Rows.Count, SetColl("ObektCol").Val).End(xlUp).Row
+    Case "SampleDataFromDBStoredProcedure"
+        Set conn = GetNewConnToAccess(Nastr("Datasources").Item("Sample_DB_Path").Val, True)
+        queryName = "getSomeDataQuery"
+        queryType = adCmdStoredProc
+        Parameters = Array(PersonName, PersonCity)
+                                                                                                                                            
 End Select
 '=============================================
 Select Case Context
     Case "OrderList"
         If StartRow = 0 Or LastRow = 0 Or LastCol = 0 Then Call MarkupOrderList(StartRow, LastRow, LastCol)
         getPresetData = WS.Range(WS.Cells(StartRow, 1), WS.Cells(LastRow, LastCol))
+    Case "SampleDataFromDBStoredProcedure"
+        getPresetData = GetRSData(conn, queryName, True, Parameters, queryType)                                                                                                                                            
 End Select
 
 If AddToDS Then Call AddDatasource(DS, Context, getPresetData, ForceReset)
