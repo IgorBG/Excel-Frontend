@@ -164,7 +164,7 @@ Private Function GetFilteredCollection(ByVal inData As Variant, Context As Strin
 End Function
 
 
-Public Function getPresetData(Context As String, Optional ForceReset As Boolean = False, Optional AddToDS As Boolean = True) As Variant
+Public Function getPresetData(Context As String, Optional ForceReset As Boolean = False, Optional AddToDS As Boolean = True, Optional ByVal InParameters as Variant) As Variant
     Dim WS As Worksheet
     Dim StartRow As Long, LastRow As Long, LastCol As Long
     Dim LocalData As Variant, TempVar1 As Variant
