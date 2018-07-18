@@ -15,11 +15,16 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
+
+
+
 Option Explicit
 
 'Private pEventLog As String
-Private pSearchQuerry As String
+Private pSearchQuery As String
+Private pQueryType As Variant
 Private pResults As Variant
+Private pResultObj As Collection
 Private pContext As String
 Private Const defWidth As Double = 450
 Private Const defHeight As Double = 200
@@ -28,14 +33,19 @@ Private Const defWindowCaption As String = "Прозорец за търсене
 Private Const defHelpCaption As String = "Въведете името по което желаете да търсите елементите в Базата данни"
     
 Private WithEvents EventLogger As CListener
-Attribute EventLogger.VB_VarHelpID = -1
     
     
-    Public Property Let SearchQuerry(ByVal ValueIn As String)
-        pSearchQuerry = ValueIn
+    Public Property Let SearchQuery(ByVal ValueIn As String)
+        pSearchQuery = ValueIn
     End Property
-    Public Property Get SearchQuerry() As String
-        SearchQuerry = pSearchQuerry
+    Public Property Get SearchQuery() As String
+        SearchQuery = pSearchQuery
+    End Property
+    Public Property Let queryType(ByVal ValueIn As Variant)
+        pQueryType = ValueIn
+    End Property
+    Public Property Get queryType() As Variant
+        queryType = pQueryType
     End Property
     Public Property Let Results(ByVal DataIn As Variant)
         pResults = DataIn
@@ -46,14 +56,21 @@ Attribute EventLogger.VB_VarHelpID = -1
     Public Property Get Context() As String
         Context = pContext
     End Property
+    Public Property Set ResultObject(ByVal DataIn As Variant)
+        Set pResultObj = DataIn
+    End Property
+    Public Property Get ResultObject() As Variant
+        Set ResultObject = pResultObj
+    End Property
 
-Private Sub EventLogger_Change(ByVal Name As String)
-If Not Name = vbNullString Then Call ProcessFormEvent(Me, Name, Me.Context)
+Private Sub EventLogger_Change(ByVal name As String)
+If Not name = vbNullString Then Call ProcessFormEvent(Me, name, Me.Context)
 EventLogger.ResetLog
 End Sub
 
 Private Sub UserForm_Initialize()
     Set EventLogger = New CListener
+    Set pResultObj = New Collection
     Me.btnOption1.Visible = False
     Me.LBResultList.MultiSelect = 0
     Me.TBSearchText.SetFocus
@@ -134,6 +151,3 @@ End Sub
 Private Sub TBSearchText_AfterUpdate()
     EventLogger.EventName = "tbxSearch_Update"
 End Sub
-
-
-
