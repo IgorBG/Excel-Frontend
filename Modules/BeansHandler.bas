@@ -1,4 +1,3 @@
-Attribute VB_Name = "BeansHandler"
 Option Explicit
 
 Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String, Optional ByVal NameCol As String = 1, Optional ByVal ValCol As String = 3)
@@ -17,9 +16,9 @@ If Parent Is Nothing Then Set Parent = New Collection
 If Mode = vbNullString Then Mode = "SINGLE"
 Select Case Mode
     Case "SINGLE"
-    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, StartRowCol.Item(KeyText).Val, NameCol, ValCol), KeyText
+    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, StartRowCol.Item(KeyText).Val, NameCol, ValCol), KeyText
     Case "MULTI"
-    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, 1, StartRowCol.Item(KeyText).Val, NameCol), KeyText
+    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, 1, StartRowCol.Item(KeyText).Val, NameCol), KeyText
 End Select
 Exit Sub
 
@@ -77,8 +76,10 @@ ErrHandler:
     Call EmergencyExit("Програмата не може да открие файл с име '" & Path & "'. Вероятно той е бил изтрит или преименуван." & _
                 "Моля, възстановете го или обърнете се за помощ при администратора на програмата")
     End Sub
-            Private Function Collection_Nastrojki_Edna_Kolona(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, Optional StartRow As Long) As Collection
-            ' For Single column settings
+                        Private Function Collection_Nastrojki_Edna_Kolona(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, _
+                                                            IgnoreRows As Integer, SourceSheet As Worksheet, Optional StartRow As Long, _
+                                                            Optional ByVal NameCol As Long = 1, Optional ByVal ValCol As Long = 3) As Collection
+' For Single column settings
             Dim Col As New Collection
             Dim Data As Variant
             Dim i As Integer
@@ -87,8 +88,8 @@ ErrHandler:
             Data = Data_Nastrojki(NachZapis, KrajZapis, LastKolZapis, IgnoreRows, SourceSheet, StartRow)
                 For i = 1 To UBound(Data)
                     Set Tek_Atr = New CBean
-                    Tek_Atr.Prop = Data(i, 1)
-                    Tek_Atr.Val = Data(i, 3)
+                    Tek_Atr.Prop = Data(i, NameCol)
+                    Tek_Atr.Val = Data(i, ValCol)
                     On Error Resume Next
                     Col.Add Tek_Atr, Tek_Atr.Prop
                     Set Tek_Atr = Nothing
@@ -98,7 +99,7 @@ ErrHandler:
             Set Col = Nothing
             End Function
             
-            Private Function Collection_Nastrojki_Mnogo_Koloni(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, KeyRow As Integer, Optional StartRow As Long) As Collection
+            Private Function Collection_Nastrojki_Mnogo_Koloni(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, KeyRow As Integer, Optional StartRow As Long, Optional ByVal NameCol As Long = 1) As Collection
             Dim Col As New Collection
             Dim ColonaNastr As Collection
             Dim Data As Variant
@@ -110,7 +111,7 @@ ErrHandler:
                 Set ColonaNastr = New Collection
                 For i = 1 To UBound(Data)
                     Set Tek_Atr = New CBean
-                    Tek_Atr.Prop = Data(i, 1)
+                    Tek_Atr.Prop = Data(i, NameCol)
                     Tek_Atr.Val = Data(i, j)
                     On Error Resume Next
                     ColonaNastr.Add Tek_Atr, Tek_Atr.Prop
