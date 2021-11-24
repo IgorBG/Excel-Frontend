@@ -1,55 +1,57 @@
 Attribute VB_Name = "DBconn"
 Option Explicit
 Public Function GetNewConnToAccess(ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True) As ADODB.Connection
-    Dim Conn As ADODB.Connection
-Call SetNewConnToAccess(Conn, FullPathToMDBfile, getOpened)
-Set GetNewConnToAccess = Conn
-Set Conn = Nothing
+    Dim conn As ADODB.Connection
+Call SetNewConnToAccess(conn, FullPathToMDBfile, getOpened)
+Set GetNewConnToAccess = conn
+Set conn = Nothing
 End Function
 
-Sub SetNewConnToAccess(ByRef Conn As ADODB.Connection, ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True)
+Sub SetNewConnToAccess(ByRef conn As ADODB.Connection, ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True)
     Dim ErrMsg As String
-    Dim breakPoint As Long
+    Dim PP As Long
     Dim RS As Variant
-breakPoint = 100
+PP = 100
 On Error GoTo Err_Handler
-If Not Conn Is Nothing Then GoTo Err_Handler
-   Set Conn = New ADODB.Connection
-    Conn.Provider = "Microsoft.Jet.OLEDB.4.0;"
-    Conn.ConnectionString = "Data Source=" & FullPathToMDBfile
-breakPoint = 200
-    If getOpened Then Conn.Open
-'“ÂÒÚ‚‡ÌÂ Ì‡ ‚˙ÁÍ‡Ú‡
-'    RS = GetRSData(conn, "SELECT 1")
+If Not conn Is Nothing Then GoTo Err_Handler
+   Set conn = New ADODB.Connection
+    conn.Provider = "Microsoft.Jet.OLEDB.4.0;"
+    conn.ConnectionString = "Data Source=" & FullPathToMDBfile
+PP = 200
+    If getOpened Then conn.Open
+'Testing the connection
+PP = 250
+    RS = GetRSData(conn, "SELECT 1")
 Exit Sub
 
 Err_Handler:
-Select Case breakPoint
-    Case 100: ErrMsg = "¬˙ÁÍ‡Ú‡ Í˙Ï ·‡Á‡Ú‡ ‰‡ÌÌË ÌÂ Â ·ËÎ‡ Á‡Ú‚ÓÂÌ‡ ÔÂÁ ÔÂ‰Ë¯ÌËÚÂ ÓÔÂ‡ˆËË. –ÂÒÚ‡ÚË‡ÈÚÂ ÔÓ„‡Ï‡Ú‡"
-    Case 200: ErrMsg = "œÓ„‡Ï‡Ú‡ ÌÂ ÓÚÍË‚‡ ‚˙ÁÍ‡Ú‡ Ò ·‡Á‡Ú‡ ‰‡ÌÌË ÔÓ ‡‰ÂÒ: " & FullPathToMDBfile & ". ¬ÂÓˇÚÌÓ ‡‰ÂÒ˙Ú, Ì‡ ÍÓÈÚÓ ÒÂ Ì‡ÏË‡ ¡ƒ Úˇ·‚‡ ‰‡ ÒÂ ÔÓ‰ÌÓ‚Ë ‚ ÎËÒÚ Ì‡ÒÚÓÈÍË."
-    Case Else:: ErrMsg = "√Â¯Í‡ ÔË ÓÔËÚ Á‡ Ò‚˙Á‚‡ÌÂ Ò ·‡Á‡Ú‡ ‰‡ÌÌË Ì‡ ‡‰ÂÒ:: " & FullPathToMDBfile & "."
+Select Case PP
+    Case 100: ErrMsg = "–í—Ä—ä–∑–∫–∞—Ç–∞ –∫—ä–º –±–∞–∑–∞—Ç–∞ –¥–∞–Ω–Ω–∏ –Ω–µ –µ –±–∏–ª–∞ –∑–∞—Ç–≤–æ—Ä–µ–Ω–∞ –ø—Ä–µ–∑ –ø—Ä–µ–¥–∏—à–Ω–∏—Ç–µ –æ–ø–µ—Ä–∞—Ü–∏–∏. –†–µ—Å—Ç–∞—Ä—Ç–∏—Ä–∞–π—Ç–µ –ø—Ä–æ–≥—Ä–∞–º–∞—Ç–∞"
+    Case 200: ErrMsg = "–ü—Ä–æ–≥—Ä–∞–º–∞—Ç–∞ –Ω–µ –º–æ–∂–µ –¥–∞ –∏–Ω–∏—Ü–∏–∏—Ä–∞ –≤—Ä—ä–∑–∫–∞—Ç–∞ —Å –±–∞–∑–∞—Ç–∞ –¥–∞–Ω–Ω–∏ –ø–æ –∞–¥—Ä–µ—Å: " & FullPathToMDBfile & ". –í–µ—Ä–æ—è—Ç–Ω–æ –∞–¥—Ä–µ—Å—ä—Ç, –Ω–∞ –∫–æ–π—Ç–æ —Å–µ –Ω–∞–º–∏—Ä–∞ –ë–î —Ç—Ä—è–±–≤–∞ –¥–∞ —Å–µ –ø–æ–¥–Ω–æ–≤–∏ –≤ –ª–∏—Å—Ç –Ω–∞—Å—Ç—Ä–æ–π–∫–∏."
+    Case 250: ErrMsg = "–ü—Ä–æ–≥—Ä–∞–º–∞—Ç–∞ —Å–µ —Å–≤—ä—Ä–∑–≤–∞ —Å –±–∞–∑–∞—Ç–∞ –¥–∞–Ω–Ω–∏ –ø–æ –∞–¥—Ä–µ—Å: " & FullPathToMDBfile & ". –ù–æ –ø—Ä–æ–±–Ω–∞—Ç–∞ –∑–∞—è–≤–∫–∞ —Å–µ –≤—Ä—ä—â–∞ —Å –≥—Ä–µ—à–∫–∞."
+    Case Else: ErrMsg = "–ì—Ä–µ—à–∫–∞ –ø—Ä–∏ –æ–ø–∏—Ç –∑–∞ —Å–≤—ä—Ä–∑–≤–∞–Ω–µ —Å –±–∞–∑–∞—Ç–∞ –¥–∞–Ω–Ω–∏ –ø–æ –∞–¥—Ä–µ—Å: " & FullPathToMDBfile
 End Select
 Call EmergencyExit(ErrMsg)
 End Sub
-Sub CloseTheConnToAccess(ByRef Conn As ADODB.Connection)
-If Conn Is Nothing Then
-    Debug.Print "¬˙ÁÍ‡Ú‡ ÌÂ Â ·ËÎ‡ ÓÚ‚ÓÂÌ‡, ˜Â ‰‡ ÒÂ Á‡Ú‚ÓË"
-    Else: Set Conn = Nothing
+Sub CloseTheConnToAccess(ByRef conn As ADODB.Connection)
+If conn Is Nothing Then
+    Debug.Print "–í—Ä—ä–∑–∫–∞—Ç–∞ –Ω–µ –µ –±–∏–ª–∞ –æ—Ç–≤–æ—Ä–µ–Ω–∞, —á–µ –¥–∞ —Å–µ –∑–∞—Ç–≤–æ—Ä–∏"
+    Else: Set conn = Nothing
 End If
 End Sub
 
-Public Function GetFirstRecordFromRSData(ByRef Conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean) As Variant
+Public Function GetFirstRecordFromRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean) As Variant
 Dim r As Variant
-    r = GetRSData(Conn, sqlCmd, ConnCloseAfter)
+    r = GetRSData(conn, sqlCmd, ConnCloseAfter)
     If IsArray(r) Then GetFirstRecordFromRSData = r(LBound(r, 1), LBound(r, 2))
 End Function
 
-Public Function GetRSData(ByRef Conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean) As Variant
+Public Function GetRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean, Optional Parameters As Variant = "", Optional cmdType = adCmdText) As Variant
 Dim RS As ADODB.Recordset
+Dim Cmd As ADODB.Command
 'On Error GoTo ErrHandler
-    Set RS = New ADODB.Recordset
-        RS.ActiveConnection = Conn
-        RS.Open sqlCmd
+    Set Cmd = GetNewADODBCommand(conn, sqlCmd, Parameters, cmdType)
+        Set RS = Cmd.Execute
             If Not RS.EOF And Not RS.BOF Then
                 GetRSData = RS.GetRows
             Else:
@@ -57,7 +59,7 @@ Dim RS As ADODB.Recordset
             End If
         RS.Close
     Set RS = Nothing
-    If ConnCloseAfter Then Call CloseTheConnToAccess(Conn)
+    If ConnCloseAfter Then Call CloseTheConnToAccess(conn)
 Exit Function
 ErrHandler:
     Debug.Print err.Number
@@ -65,49 +67,122 @@ ErrHandler:
     Set RS = Nothing
 End Function
 
-Public Function AdaptedQuerry(ByVal SQLQuerry As String, Optional ByVal Criteria As String = vbNullString) As String
-AdaptedQuerry = Replace(SQLQuerry, "@Criteria", "'%" & Criteria & "%'")
+Public Sub ExecuteStoredProcedure(ByVal conn As ADODB.Connection, ByVal StorProcName As String, Optional ByVal Parameters As Variant)
+    Dim TemCmd As New ADODB.Command
+On Error GoTo ErrHandler
+Set TemCmd = GetNewADODBCommand(conn, StorProcName, Parameters, adCmdStoredProc)
+Call TemCmd.Execute
+Exit Sub
+
+ErrHandler:
+Call EmergencyExit("–ú–æ–¥—É–ª ExecuteStoredProcedure")
+End Sub
+    
+
+    
+    Private Function GetNewADODBCommand(ByRef conn As ADODB.Connection, ByVal CommandText As String, Optional ByVal Parameters As Variant, Optional cmdType = adCmdText) As ADODB.Command
+    Dim i As Long
+    Dim TekCmnd As New ADODB.Command
+    Dim ParametersArray As Variant
+        Set TekCmnd.ActiveConnection = conn
+        TekCmnd.CommandText = CommandText
+        TekCmnd.CommandType = cmdType
+        TekCmnd.CommandTimeout = 15
+    
+    If IsMissing(Parameters) Then Parameters = vbNullString
+  'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same –∞—Å in the stored procedure!'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same –∞—Å in the stored procedure!
+
+        ParametersArray = GetParametersAsArray(Parameters)
+        
+        For i = LBound(ParametersArray) To UBound(ParametersArray)
+            Select Case ParametersArray(i)
+            Case vbNullString
+                Call TekCmnd.Parameters.Append(CreateCommandParameter("none", Null))
+            Case Else
+                Call TekCmnd.Parameters.Append(CreateCommandParameter(ParametersArray(i), ParametersArray(i)))
+            End Select
+        Next i
+        
+        Set GetNewADODBCommand = TekCmnd
+        Exit Function
+ErrHandler:
+        Call EmergencyExit("Function GetNewADODBCommand")
+    End Function
+    
+    Private Function CreateCommandParameter(ByVal name As String, ByVal value As Variant, Optional ByVal numPrecision As Integer = 4, Optional ByVal numScale As Integer = 4) As ADODB.Parameter
+    ' based on https://codereview.stackexchange.com/questions/144063/passing-multiple-parameters-to-an-sql-Query
+        Dim result As New ADODB.Parameter
+        result.Direction = adParamInput
+        result.name = name
+        result.value = value
+    
+        Select Case VarType(value)
+            Case VbVarType.vbBoolean
+                result.Type = adBoolean
+    
+            Case VbVarType.vbDate
+                result.Type = adDate
+    
+            Case VbVarType.vbCurrency
+                result.Type = adCurrency
+                result.Precision = numPrecision
+                result.NumericScale = numScale
+    
+            Case VbVarType.vbDouble
+                result.Type = adDouble
+                result.Precision = numPrecision
+                result.NumericScale = numScale
+    
+            Case VbVarType.vbSingle
+                result.Type = adSingle
+                result.Precision = numPrecision
+                result.NumericScale = numScale
+    
+            Case VbVarType.vbByte, VbVarType.vbInteger, VbVarType.vbLong
+                result.Type = adInteger
+    
+            Case VbVarType.vbString, VbVarType.vbNull
+                result.Type = adVarChar
+                If VarType(value) = vbNull Then result.Size = 1 Else result.Size = Len(value)
+                If value = vbNullString Then result.Size = 1
+        
+            Case Else
+                err.Raise 5, Description:="Data type not supported"
+        End Select
+
+        Set CreateCommandParameter = result
+    End Function
+
+Private Function GetParametersAsArray(ByRef Parameters As Variant) As Variant
+On Error GoTo ErrHandler
+If IsArray(Parameters) Then GetParametersAsArray = Parameters: Exit Function
+Select Case VarType(Parameters)
+    Case VbVarType.vbArray
+        GetParametersAsArray = Parameters
+    Case VbVarType.vbObject
+        GetParametersAsArray = getParamArrayFromColl(Parameters)
+    Case Else
+        GetParametersAsArray = Array(Parameters)
+End Select
+Exit Function
+
+ErrHandler:
+        Call EmergencyExit("Function GetParametersAsArray")
 End Function
-
-Public Function CreateCommandParameter(ByVal name As String, ByVal value As Variant, Optional ByVal numPrecision As Integer = 4, Optional ByVal numScale As Integer = 4) As ADODB.Parameter
-' copied from https://codereview.stackexchange.com/questions/144063/passing-multiple-parameters-to-an-sql-query
-    Dim result As New ADODB.Parameter
-    result.Direction = adParamInput
-    result.name = name
-    result.value = value
-
-    Select Case VarType(value)
-        Case VbVarType.vbBoolean
-            result.Type = adBoolean
-
-        Case VbVarType.vbDate
-            result.Type = adDate
-
-        Case VbVarType.vbCurrency
-            result.Type = adCurrency
-            result.Precision = numPrecision
-            result.NumericScale = numScale
-
-        Case VbVarType.vbDouble
-            result.Type = adDouble
-            result.Precision = numPrecision
-            result.NumericScale = numScale
-
-        Case VbVarType.vbSingle
-            result.Type = adSingle
-            result.Precision = numPrecision
-            result.NumericScale = numScale
-
-        Case VbVarType.vbByte, VbVarType.vbInteger, VbVarType.vbLong
-            result.Type = adInteger
-
-        Case VbVarType.vbString
-            result.Type = adVarChar
-
-        Case Else
-            err.Raise 5, Description:="Data type not supported"
-    End Select
-
-    Set CreateCommandParameter = result
+Private Function getParamArrayFromColl(ByVal inColl As Collection) As Variant
+    Dim v As Variant
+    Dim result As String
+On Error GoTo ErrHandler
+    For Each v In inColl
+        result = result & v & ";"
+    Next v
+    If Len(result) > 0 Then result = Left(result, Len(result) - 1)
+    getParamArrayFromColl = Split(result, ";")
+Exit Function
+ErrHandler:
+    Call EmergencyExit("–§—É–Ω–∫—Ü–∏—è getParamArrayFromColl")
+End Function
+Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
+AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
 
