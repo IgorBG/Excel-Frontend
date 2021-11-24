@@ -1,7 +1,7 @@
 Attribute VB_Name = "BeansHandler"
 Option Explicit
 
-Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String = "SINGLE")
+Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String, Optional ByVal NameCol As String = 1, Optional ByVal ValCol As String = 3)
     Dim StartRowCol As Collection, StartRow As Long
 If Not isInitialized Then Call Inicial_Main
 On Error GoTo ErrHandler
@@ -17,9 +17,9 @@ If Parent Is Nothing Then Set Parent = New Collection
 If Mode = vbNullString Then Mode = "SINGLE"
 Select Case Mode
     Case "SINGLE"
-    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, StartRow), KeyText
+    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, StartRowCol.Item(KeyText).Val, NameCol, ValCol), KeyText
     Case "MULTI"
-    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, 1, StartRow), KeyText
+    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, 1, StartRowCol.Item(KeyText).Val, NameCol), KeyText
 End Select
 Exit Sub
 
