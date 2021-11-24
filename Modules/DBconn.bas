@@ -1,4 +1,3 @@
-Attribute VB_Name = "DBconn"
 Option Explicit
 Public Function GetNewConnToAccess(ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True) As ADODB.Connection
     Dim conn As ADODB.Connection
@@ -21,24 +20,38 @@ PP = 200
     If getOpened Then conn.Open
 'Testing the connection
 PP = 250
-    RS = GetRSData(conn, "SELECT 1")
+'    RS = GetRSData(conn, "SELECT 1")
 Exit Sub
 
 Err_Handler:
 Select Case PP
-    Case 100: ErrMsg = "Р’СЂСЉР·РєР°С‚Р° РєСЉРј Р±Р°Р·Р°С‚Р° РґР°РЅРЅРё РЅРµ Рµ Р±РёР»Р° Р·Р°С‚РІРѕСЂРµРЅР° РїСЂРµР· РїСЂРµРґРёС€РЅРёС‚Рµ РѕРїРµСЂР°С†РёРё. Р РµСЃС‚Р°СЂС‚РёСЂР°Р№С‚Рµ РїСЂРѕРіСЂР°РјР°С‚Р°"
-    Case 200: ErrMsg = "РџСЂРѕРіСЂР°РјР°С‚Р° РЅРµ РјРѕР¶Рµ РґР° РёРЅРёС†РёРёСЂР° РІСЂСЉР·РєР°С‚Р° СЃ Р±Р°Р·Р°С‚Р° РґР°РЅРЅРё РїРѕ Р°РґСЂРµСЃ: " & FullPathToMDBfile & ". Р’РµСЂРѕСЏС‚РЅРѕ Р°РґСЂРµСЃСЉС‚, РЅР° РєРѕР№С‚Рѕ СЃРµ РЅР°РјРёСЂР° Р‘Р” С‚СЂСЏР±РІР° РґР° СЃРµ РїРѕРґРЅРѕРІРё РІ Р»РёСЃС‚ РЅР°СЃС‚СЂРѕР№РєРё."
-    Case 250: ErrMsg = "РџСЂРѕРіСЂР°РјР°С‚Р° СЃРµ СЃРІСЉСЂР·РІР° СЃ Р±Р°Р·Р°С‚Р° РґР°РЅРЅРё РїРѕ Р°РґСЂРµСЃ: " & FullPathToMDBfile & ". РќРѕ РїСЂРѕР±РЅР°С‚Р° Р·Р°СЏРІРєР° СЃРµ РІСЂСЉС‰Р° СЃ РіСЂРµС€РєР°."
-    Case Else: ErrMsg = "Р“СЂРµС€РєР° РїСЂРё РѕРїРёС‚ Р·Р° СЃРІСЉСЂР·РІР°РЅРµ СЃ Р±Р°Р·Р°С‚Р° РґР°РЅРЅРё РїРѕ Р°РґСЂРµСЃ: " & FullPathToMDBfile
+    Case 100: ErrMsg = "Връзката към базата данни не е била затворена през предишните операции. Рестартирайте програмата"
+    Case 200: ErrMsg = "Програмата не може да инициира връзката с базата данни по адрес: " & FullPathToMDBfile & ". Вероятно адресът, на който се намира БД трябва да се поднови в лист настройки."
+    Case 250: ErrMsg = "Програмата се свързва с базата данни по адрес: " & FullPathToMDBfile & ". Но пробната заявка се връща с грешка."
+    Case Else: ErrMsg = "Грешка при опит за свързване с базата данни по адрес: " & FullPathToMDBfile
 End Select
 Call EmergencyExit(ErrMsg)
 End Sub
 Sub CloseTheConnToAccess(ByRef conn As ADODB.Connection)
 If conn Is Nothing Then
-    Debug.Print "Р’СЂСЉР·РєР°С‚Р° РЅРµ Рµ Р±РёР»Р° РѕС‚РІРѕСЂРµРЅР°, С‡Рµ РґР° СЃРµ Р·Р°С‚РІРѕСЂРё"
+    Debug.Print "Връзката не е била отворена, че да се затвори"
     Else: Set conn = Nothing
 End If
 End Sub
+
+Public Function getConnectionFromPull(Path As String) As Object
+    Dim Tempconn As ADODB.Connection
+    On Error GoTo ErrHandler
+        If Not ObjectIsInCollection(DC, Path) Then
+            Set Tempconn = GetNewConnToAccess(Path, False)
+            DC.Add Tempconn, Path
+        End If
+    Set getConnectionFromPull = DC.Item(Path)
+Exit Function
+
+ErrHandler:
+Call EmergencyExit("Проблем в модул getConnectionFromPull")
+End Function
 
 Public Function GetFirstRecordFromRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean) As Variant
 Dim r As Variant
@@ -75,7 +88,7 @@ Call TemCmd.Execute
 Exit Sub
 
 ErrHandler:
-Call EmergencyExit("РњРѕРґСѓР» ExecuteStoredProcedure")
+Call EmergencyExit("Модул ExecuteStoredProcedure")
 End Sub
     
 
@@ -90,7 +103,7 @@ End Sub
         TekCmnd.CommandTimeout = 15
     
     If IsMissing(Parameters) Then Parameters = vbNullString
-  'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same Р°СЃ in the stored procedure!'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same Р°СЃ in the stored procedure!
+  'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!
 
         ParametersArray = GetParametersAsArray(Parameters)
         
@@ -180,9 +193,8 @@ On Error GoTo ErrHandler
     getParamArrayFromColl = Split(result, ";")
 Exit Function
 ErrHandler:
-    Call EmergencyExit("Р¤СѓРЅРєС†РёСЏ getParamArrayFromColl")
+    Call EmergencyExit("Функция getParamArrayFromColl")
 End Function
 Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
 AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
-
