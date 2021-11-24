@@ -1,63 +1,85 @@
 Attribute VB_Name = "BeansHandler"
 Option Explicit
 
-Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String, Optional ByVal NameCol As String = 1, Optional ByVal ValCol As String = 3)
-    Dim StartRowCol As Collection
-If Not IsInitialized Then Call Inicial_Main
-Set StartRowCol = Collection_Nastrojki_Edna_Kolona("#Content", "#ContentEnd", "LastCol", 2, NastrSheet, 1)
+Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String = "SINGLE")
+    Dim StartRowCol As Collection, StartRow As Long
+If Not isInitialized Then Call Inicial_Main
+On Error GoTo ErrHandler
+
+Set StartRowCol = Collection_Nastrojki_Edna_Kolona("#Content", "#ContentEnd", "LastCol", 2, nastrSheet, 1)
+If ObjectIsInCollection(StartRowCol, KeyText) Then
+    StartRow = StartRowCol.Item(KeyText).Val
+    Else: StartRow = 0
+End If
+
 If Parent Is Nothing Then Set Parent = New Collection
 
 If Mode = vbNullString Then Mode = "SINGLE"
 Select Case Mode
     Case "SINGLE"
-    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, StartRowCol.Item(KeyText).Val, NameCol, ValCol), KeyText
+    Parent.Add Collection_Nastrojki_Edna_Kolona(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, StartRow), KeyText
     Case "MULTI"
-    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, NastrSheet, 1, StartRowCol.Item(KeyText).Val, NameCol), KeyText
+    Parent.Add Collection_Nastrojki_Mnogo_Koloni(CStr("#" & KeyText), CStr("#" & KeyText & "End"), "LastCol", 2, nastrSheet, 1, StartRow), KeyText
 End Select
+Exit Sub
+
+ErrHandler:
+EmergencyExit "Модул Inicial_Add. Не откривам необходимата маркировка за таблица " & KeyText
 End Sub
 
 Public Sub Inicial_Main()
     Dim StartRowCol As Collection
+Call InicialWS(oSheet, "Porychki")
+Call InicialWS(pakSheet, "Paketi")
+Call InicialWS(printSheet, "Print")
+Call InicialWS(NPSheet, "NarProizv")
+Call InicialWS(nastrSheet, "Nastrojki")
+Call InicialWS(impSheet, "import")
 
-Call InicialWS(NTSheet, "Sheet1")
-Call InicialWS(ERPSheet, "Sheet2")
-Call InicialWS(RAZPSheet, "Sheet3")
-Call InicialWS(NastrSheet, "Nastrojki")
+eventImportSheetChange = True
 
-Set StartRowCol = Collection_Nastrojki_Edna_Kolona("#Content", "#ContentEnd", "LastCol", 2, NastrSheet, 1)
+Set StartRowCol = Collection_Nastrojki_Edna_Kolona("#Content", "#ContentEnd", "LastCol", 2, nastrSheet, 1)
 Set Nastr = New Collection
+Set DS = New Collection
+Set DC = New Collection
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#OrdMark", "#OrdMarkEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("OrdMark").Val), "OrdMark"
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#PakMark", "#PakMarkEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("PakMark").Val), "PakMark"
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#DetMark", "#DetMarkEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("DetMark").Val), "DetMark"
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#Datasources", "#DatasourcesEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("Datasources").Val), "Datasources"
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#NPMark", "#NPMarkEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("NPMark").Val), "NPMark"
+Nastr.Add Collection_Nastrojki_Mnogo_Koloni("#NPFltr", "#NPFltrEnd", "LastCol", 2, nastrSheet, 1, StartRowCol.Item("NPFltr").Val), "NPFltr"
+Nastr.Add Collection_Nastrojki_Mnogo_Koloni("#OrdFltr", "#OrdFltrEnd", "LastCol", 2, nastrSheet, 1, StartRowCol.Item("OrdFltr").Val), "OrdFltr"
+Nastr.Add Collection_Nastrojki_Edna_Kolona("#Print", "#PrintEnd", "LastCol", 2, nastrSheet, StartRowCol.Item("Print").Val), "Print"
 
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#Variables", "#VariablesEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("Variables").Val), "Variables"
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#ERPMark", "#ERPMarkEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("ERPMark").Val), "ERPMark"
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#RazpredKlientiMark", "#RazpredKlientiMarkEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("RazpredKlientiMark").Val), "RazpredKlientiMark"
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#RazpredKamioniMark", "#RazpredKamioniMarkEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("RazpredKamioniMark").Val), "RazpredKamioniMark"
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#Datasources", "#DatasourcesEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("Datasources").Val), "Datasources"
-Nastr.Add Collection_Nastrojki_Edna_Kolona("#NTMark", "#NTMarkEnd", "LastCol", 2, NastrSheet, StartRowCol.Item("NTMark").Val), "NTMark"
-Nastr.Add Collection_Nastrojki_Mnogo_Koloni("#TovFltr", "#TovFltrEnd", "LastCol", 2, NastrSheet, 1, StartRowCol.Item("TovFltr").Val), "TovFltr"
+Call InicialDC
 
-IsInitialized = True
+isInitialized = True
 End Sub
 
-Private Function getInicialWS(ByVal WSName As String) As Worksheet
-    On Error GoTo ErrHandler
-    Set getInicialWS = ThisWorkbook.Worksheets(WSName): Exit Function
+    Private Sub InicialWS(ByRef WSObject As Worksheet, ByVal WSName As String)
+        On Error GoTo ErrHandler
+        Set WSObject = ThisWorkbook.Worksheets(WSName): Exit Sub
 ErrHandler:
-    MsgBox "Ïðîãðàìàòà íå ìîæå äà îòêðèå ëèñò ñ èìå '" & WSName & "'. Âåðîÿòíî òîé å áèë èçòðèò èëè ïðåèìåíóâàí." & _
-            "Ìîëÿ, âúçñòàíîâåòå ãî èëè ïîëçâàéòå ïîñëåäíàòà ðàáîòåùà âåðñèÿ íà ïðîãðàìàòà": End
-End Function
-Private Sub InicialWS(ByRef WSObject As Worksheet, ByVal WSName As String)
-    On Error GoTo ErrHandler
-    Set WSObject = ThisWorkbook.Worksheets(WSName): Exit Sub
-ErrHandler:
-    MsgBox "Ïðîãðàìàòà íå ìîæå äà îòêðèå ëèñò ñ èìå '" & WSName & "'. Âåðîÿòíî òîé å áèë èçòðèò èëè ïðåèìåíóâàí." & _
-            "Ìîëÿ, âúçñòàíîâåòå ãî èëè ïîëçâàéòå ïîñëåäíàòà ðàáîòåùà âåðñèÿ íà ïðîãðàìàòà": End
+        MsgBox "Програмата не може да открие лист с име '" & WSName & "'. Вероятно той е бил изтрит или преименуван." & _
+                "Моля, възстановете го или ползвайте последната работеща версия на програмата": End
 End Sub
-
-            Private Function Collection_Nastrojki_Edna_Kolona(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, _
-                                                            IgnoreRows As Integer, SourceSheet As Worksheet, Optional StartRow As Long, _
-                                                            Optional ByVal NameCol As Long = 1, Optional ByVal ValCol As Long = 3) As Collection
+    Private Sub InicialDC() 'Singletone inicialisation of all data connections
+       ' On Error GoTo ErrHandler
+        Dim b As CBean
+        Dim Path As String
+            
+            For Each b In Nastr.Item("Datasources")
+                Path = b.Val
+                If Not ObjectIsInCollection(DC, Path) Then DC.Add GetNewConnToAccess(Path, False), Path
+            Next b
+    Exit Sub
+ErrHandler:
+    Call EmergencyExit("Програмата не може да открие файл с име '" & Path & "'. Вероятно той е бил изтрит или преименуван." & _
+                "Моля, възстановете го или обърнете се за помощ при администратора на програмата")
+    End Sub
+            Private Function Collection_Nastrojki_Edna_Kolona(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, Optional StartRow As Long) As Collection
             ' For Single column settings
-            Dim col As New Collection
+            Dim Col As New Collection
             Dim Data As Variant
             Dim i As Integer
             Dim Tek_Atr As CBean
@@ -65,19 +87,19 @@ End Sub
             Data = Data_Nastrojki(NachZapis, KrajZapis, LastKolZapis, IgnoreRows, SourceSheet, StartRow)
                 For i = 1 To UBound(Data)
                     Set Tek_Atr = New CBean
-                    Tek_Atr.Prop = Data(i, NameCol)
-                    Tek_Atr.Val = Data(i, ValCol)
+                    Tek_Atr.Prop = Data(i, 1)
+                    Tek_Atr.Val = Data(i, 3)
                     On Error Resume Next
-                    col.Add Tek_Atr, Tek_Atr.Prop
+                    Col.Add Tek_Atr, Tek_Atr.Prop
                     Set Tek_Atr = Nothing
                 Next i
             Set Data = Nothing
-            Set Collection_Nastrojki_Edna_Kolona = col
-            Set col = Nothing
+            Set Collection_Nastrojki_Edna_Kolona = Col
+            Set Col = Nothing
             End Function
             
-            Private Function Collection_Nastrojki_Mnogo_Koloni(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, KeyRow As Integer, Optional StartRow As Long, Optional ByVal NameCol As Long = 1) As Collection
-            Dim col As New Collection
+            Private Function Collection_Nastrojki_Mnogo_Koloni(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, KeyRow As Integer, Optional StartRow As Long) As Collection
+            Dim Col As New Collection
             Dim ColonaNastr As Collection
             Dim Data As Variant
             Dim i As Integer, j As Integer
@@ -88,21 +110,21 @@ End Sub
                 Set ColonaNastr = New Collection
                 For i = 1 To UBound(Data)
                     Set Tek_Atr = New CBean
-                    Tek_Atr.Prop = Data(i, NameCol)
+                    Tek_Atr.Prop = Data(i, 1)
                     Tek_Atr.Val = Data(i, j)
                     On Error Resume Next
                     ColonaNastr.Add Tek_Atr, Tek_Atr.Prop
                     Set Tek_Atr = Nothing
                 Next i
             
-            If col Is Nothing Then Set col = New Collection
-            col.Add ColonaNastr, CStr(Data(KeyRow, j))
+            If Col Is Nothing Then Set Col = New Collection
+            Col.Add ColonaNastr, CStr(Data(KeyRow, j))
             Set ColonaNastr = Nothing
             Next j
             
             Set Data = Nothing
-            Set Collection_Nastrojki_Mnogo_Koloni = col
-            Set col = Nothing
+            Set Collection_Nastrojki_Mnogo_Koloni = Col
+            Set Col = Nothing
             End Function
              
       Private Function Data_Nastrojki(ByRef NachZapis As String, ByRef KrajZapis As String, ByRef LastKolZapis As String, IgnoreRows As Integer, SourceSheet As Worksheet, StartRow As Long) As Variant
@@ -113,33 +135,43 @@ End Sub
              SourceSheetLastRow = SourceSheet.Cells(Rows.Count, 1).End(xlUp).Row
              'SourceSheetLastCol = SourceSheet.Cells(1, Columns.Count).End(xlToLeft).Column
              SourceSheetLastCol = 255
-            ' òúðñèì íàñòðîéêèòå íà ñòðàíèöàòà
-            For i = StartRow To SourceSheetLastRow ' òúðñèì ðåäà ñ êîäîâîòî èìå NachZapis
-                If SourceSheet.Cells(i, 1).Value = NachZapis Then FirstRow = i: Exit For
+            ' търсим настройките на страницата
+            For i = StartRow To SourceSheetLastRow ' търсим реда с кодовото име NachZapis
+                If SourceSheet.Cells(i, 1).value = NachZapis Then FirstRow = i: Exit For
             Next i
-            For i = FirstRow To SourceSheetLastRow ' òúðñèì ðåäà ñ êîäîâîòî èìå KrajZapis
-                If SourceSheet.Cells(i, 1).Value = KrajZapis Then LastRow = i - 1: Exit For
+            For i = FirstRow To SourceSheetLastRow ' търсим реда с кодовото име KrajZapis
+                If SourceSheet.Cells(i, 1).value = KrajZapis Then LastRow = i - 1: Exit For
             Next i
-            For i = 1 To SourceSheetLastCol ' òúðñèì êîëîíàòà ñ êîäîâîòî èìå LastKolZapis
-                If SourceSheet.Cells(FirstRow, i).Value = LastKolZapis Then LastCol = i - 1: Exit For
+            For i = 1 To SourceSheetLastCol ' търсим колоната с кодовото име LastKolZapis
+                If SourceSheet.Cells(FirstRow, i).value = LastKolZapis Then LastCol = i - 1: Exit For
             Next i
             Data_Nastrojki = SourceSheet.Range(SourceSheet.Cells(FirstRow + IgnoreRows, 1), SourceSheet.Cells(LastRow, LastCol))
             Exit Function
+
 ErrHandler:
-            MsgBox ("Íå îòêðèâàì íåîáõîäèìàòà ìàðêèðîâêà çà òàáëèöà " & NachZapis & vbCrLf & _
-                    "Îòêðèòèòå ïàðàìåòðè:" & vbCrLf & _
-                    "Ïúðâèÿ ðåä: " & FirstRow & " - Êëþ÷:" & NachZapis & vbCrLf & _
-                    "Ïîñëåäíàòà êîëîíà: " & LastCol & " - Êëþ÷:" & LastKolZapis & vbCrLf & _
-                    "Ïîñëåäíèÿ ðåä: " & LastRow & " - Êëþ÷:" & KrajZapis)
-            End
+Call EmergencyExit("Не откривам необходимата маркировка за таблица " & NachZapis & vbCrLf & _
+                    "Откритите параметри:" & vbCrLf & _
+                    "Първия ред: " & FirstRow & " - Ключ:" & NachZapis & vbCrLf & _
+                    "Последната колона: " & LastCol & " - Ключ:" & LastKolZapis & vbCrLf & _
+                    "Последния ред: " & LastRow & " - Ключ:" & KrajZapis)
 End Function
 
-Public Function getNewBean(ByVal PropertyName As String, ByVal Value As Variant) As CBean
-On Error GoTo ErrHandler
+Public Function getNewBean(ByVal PropertyName As String, ByVal value As Variant) As CBean
+'On Error GoTo ErrHandler
 Set getNewBean = New CBean
     getNewBean.Prop = PropertyName
-    getNewBean.Val = Value
+    getNewBean.Val = value
 Exit Function
 ErrHandler:
-Call EmergencyExit("Ôóíêöèÿ getNewBean")
+Call EmergencyExit("Функция getNewBean")
 End Function
+
+
+Public Sub DeleteUserMenu()
+    Dim CntxMenu As CommandBar
+    Dim UserMenu As CommandBarControl
+Set CntxMenu = Application.CommandBars("Cell")
+For Each UserMenu In CntxMenu.Controls
+    If UserMenu.Tag = "AddedByUser" Then UserMenu.Delete    ' Delete the menu added by user.
+Next UserMenu
+End Sub
