@@ -63,7 +63,8 @@ End Function
 Public Function GetRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean, Optional Parameters As Variant = "", Optional cmdType = adCmdText) As Variant
 Dim RS As ADODB.Recordset
 Dim Cmd As ADODB.Command
-'On Error GoTo ErrHandler
+On Error GoTo ErrHandler
+    If conn.State = 0 Then conn.Open
     Set Cmd = GetNewADODBCommand(conn, sqlCmd, Parameters, cmdType)
         Set RS = Cmd.Execute
             If Not RS.EOF And Not RS.BOF Then
@@ -199,3 +200,7 @@ End Function
 Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
 AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
+
+
+
+
