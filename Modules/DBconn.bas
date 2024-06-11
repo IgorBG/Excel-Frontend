@@ -15,8 +15,12 @@ PP = 100
 On Error GoTo Err_Handler
 If Not conn Is Nothing Then GoTo Err_Handler
    Set conn = New ADODB.Connection
-    conn.Provider = "Microsoft.Jet.OLEDB.4.0;"
     conn.ConnectionString = "Data Source=" & FullPathToMDBfile
+    #If VBA7 Then 'switching different libraries for different excel versions (2003, 2021)
+        conn.Provider = "Microsoft.ACE.OLEDB.12.0" 'For Excel >=2010 (tested on 2016, 2021)
+    #Else
+        conn.Provider = "Microsoft.Jet.OLEDB.4.0;" 'For Excel 2003
+    #End If
 PP = 200
     If getOpened Then conn.Open
 'Testing the connection
