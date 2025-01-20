@@ -1,18 +1,5 @@
 Attribute VB_Name = "WSWorker"
 
-Public Sub ResetWorksheet(ByRef WS As Worksheet)
-    'The script clears everything from the worksheet exept the columnwidth
-    'It brings back the normal view of the page, positioning the screen on the first row
-    WS.Activate
-    ActiveWindow.View = xlNormalView
-    WS.PageSetup.PrintArea = ""
-    ActiveWindow.ScrollRow = 1 'positioning the screen on the first row
-    WS.Cells.Clear
-    WS.Rows.EntireRow.RowHeight = WS.StandardHeight
-    WS.Cells.PageBreak = xlPageBreakNone
-    WS.Range("A1").Select
-End Sub
-
 Private Sub CleanPrint(ByVal WS As Worksheet, Source As Variant, StartRow As Long, StartCol As Long, LastRow As Long, LastCol As Long, Optional Transpose As Boolean)
 Dim EventsTriger As Boolean
 'TODO: Добави лимита на резултатите от търсенето към настройките
@@ -60,52 +47,52 @@ Exit Sub
 ErrHandler:
 Call EmergencyExit("Програмата не успя да изчисти съдържанието от лист " & WS.name)
 End Sub
-
-Public Sub DeleteUserMenu()
-    Dim CntxMenu As CommandBar
-    Dim UserMenu As CommandBarControl
-Set CntxMenu = Application.CommandBars("Cell")
-For Each UserMenu In CntxMenu.Controls
-    If UserMenu.Tag = "AddedByUser" Then UserMenu.Delete    ' Delete the menu added by user.
-Next UserMenu
-End Sub
-
-Public Sub SortClients()
-Dim TempRange As Range, ClNastr As Collection
-Dim LastRow As Long
-If Not IsInitialized Then Call Inicial_Main
-On Error GoTo ErrHandler
-    Set ClNastr = Nastr("RazpredKlientiMark")
-    LastRow = RAZPSheet.Cells(Rows.Count, ClNastr("ObektCol").Val).End(xlUp).Row
-    If LastRow > ClNastr("StartRow").Val Then
-        Set TempRange = RAZPSheet.Range(RAZPSheet.Cells(ClNastr("StartRow").Val, 1), RAZPSheet.Cells(LastRow, ClNastr("LastCol").Val))
-        TempRange.Sort Key1:=RAZPSheet.Cells(ClNastr("StartRow").Val, 1), Order1:=xlAscending, _
-                                    Key2:=RAZPSheet.Cells(ClNastr("StartRow").Val, 2), Order2:=xlAscending, _
-                                    Key3:=RAZPSheet.Cells(ClNastr("StartRow").Val, 4), Order3:=xlAscending, _
-                                    Header:=xlNo, OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
-                                    DataOption1:=xlSortNormal, DataOption2:=xlSortNormal, DataOption3:=xlSortNormal
-    End If
-Exit Sub
-
-ErrHandler:
-Call EmergencyExit("Функция SortClients")
-End Sub
-
 Public Sub InsertBlok(ByRef TransRange As Range, ByRef DestinRange As Range, Optional ByRef NewLastRow As Long)
 TransRange.Copy Destination:=DestinRange
 NewLastRow = DestinRange.Row + TransRange.Rows.Count - 1
 End Sub
 
-
-Public Sub SetColumnWidth()
+Public Function getWSbyCode(ByVal lngType As Long) As Worksheet
+On Error GoTo ErrHandler
+    Select Case lngType
+        Case 0
+            Set getWSbyCode = KOMSkladSheet
+        Case 1
+            Set getWSbyCode = KOMPorchSheet
+        Case 2
+            Set getWSbyCode = ArtLoadSheet
+        Case 3
+            Set getWSbyCode = MatrLoadSheet
+    End Select
+Exit Function
+ErrHandler:
+Call EmergencyExit("Функция getWSbyCode")
+End Function
+Public Function getColWithCollectionByCode(ByVal lngType As Long) As Collection
+    Dim HeadName As String
 If Not IsInitialized Then Call Inicial_Main
-    Dim v As Variant, SColl As Collection
-    Set SColl = Nastr("TovarGACols")
-        For Each v In SColl
-            TGASheet.Columns(CInt(v.Prop)).ColumnWidth = getColWidth(v.Val, v.Prop, TGASheet)
-        Next v
-    TGASheet.Columns("A:P").Copy
-    TMASheet.Columns("A:P").PasteSpecial Paste:=xlPasteColumnWidths, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+On Error GoTo ErrHandler
+    Select Case lngType
+        Case 0
+            HeadName = "KomisSkladColWidth"
+        Case 1
+            HeadName = "KomisPorychColWidth"
+    End Select
+If Not ObjectIsInCollection(Nastr, HeadName) Then Call Inicial_Add(Nastr, HeadName)
+Set getColWithCollectionByCode = Nastr(HeadName)
+Exit Function
+ErrHandler:
+Call EmergencyExit("Функция getColWithCollectionByCode")
+End Function
+Public Sub SetColumnWidth(ByRef WS As Worksheet, valColl As Collection)
+If Not IsInitialized Then Call Inicial_Main
+Call Optimization_ON
+    With valColl
+        For i = 1 To 21
+            WS.Columns(i).ColumnWidth = getColWidth(.Item(i).Val, .Item(i).Prop, WS)
+        Next i
+    End With
+Call Optimization_OFF
 End Sub
         
         Public Sub SetRngFormat(ByRef rRng As Range, InString As String)
@@ -182,75 +169,3 @@ Ready:
         End With
         Application.ScreenUpdating = TempBool
         End Function
-
-Public Function RangepoID(IndicateString As String) As Range
-If Not IsInitialized Then Call Inicial_Main
-Const FRString As String = "#Start", LCString As String = "#Lcol", LRCString As String = "#Lrow"
-Dim h As Long, i As Long, j As Long, k As Long
-Dim TempStr As String
-Dim NastrLastRow As Long
-NastrLastRow = NastrSheet.Cells(Rows.Count, 1).End(xlUp).Row
-
-For i = 1 To NastrLastRow
-    If NastrSheet.Cells(i, 1).Value = IndicateString Then
-        For h = i + 1 To NastrLastRow
-            If NastrSheet.Cells(h, 1).Value = FRString Then
-                For j = 1 To NastrSheet.Cells(h, Columns.Count).End(xlToLeft).Column
-                    If NastrSheet.Cells(h, j).Value = LCString Then
-                        For k = h + 1 To 65536
-                            If NastrSheet.Cells(k, j).Value = LRCString Then
-                                TempStr = NastrSheet.Cells(k - 1, j - 1).Address
-                                GoTo SuccesExit
-                            End If
-                        Next k
-                        GoTo ErrExit
-                    End If
-                Next j
-                GoTo ErrExit
-            End If
-        Next h
-        GoTo ErrExit
-    End If
-Next i
-
-ErrExit:
-    MsgBox "Не мога да намеря граници на блока с име " + IndicateString + _
-            " от работния лист с име " + NastrSheet.name + "."
-    Set RangepoID = NastrSheet.Range("$B$1:$B$1")
-    Exit Function
-
-SuccesExit:
-Set RangepoID = NastrSheet.Range("$B$" & h & ":" & TempStr)
-
-End Function
-
-
-
-Public Function IsMarkedParticularRange(ByVal Marked As Range, Optional ByVal CheckCol As Long, _
-                                Optional ByVal StartRow As Long, Optional ByVal LastRow As Long) As Boolean
-    Dim RngCell As Range
-IsMarkedParticularRange = False
-If CheckCol > 0 Then
-    For Each RngCell In Selection.Rows
-        If Not RngCell.Column = CheckCol Then GoTo FalseExit
-    Next RngCell
-End If
-If StartRow > 0 Then
-    For Each RngCell In Selection.Rows
-        If RngCell.Row < StartRow Then GoTo FalseExit
-    Next RngCell
-End If
-If LastRow > 0 Then
-    For Each RngCell In Selection.Rows
-        If RngCell.Row > LastRow Then GoTo FalseExit
-    Next RngCell
-End If
-    'Here code will executes if only if it is needed range
-        IsMarkedParticularRange = True
-        Exit Function
-            
-FalseExit:
-Exit Function
-
-End Function
-
