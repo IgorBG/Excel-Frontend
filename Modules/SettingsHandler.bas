@@ -1,3 +1,4 @@
+Attribute VB_Name = "SettingsHandler"
 Option Explicit
 
 Public Sub Inicial_Add(ByRef Parent As Collection, KeyText As String, Optional Mode As String, Optional ByVal NameCol As String = 1, Optional ByVal ValCol As String = 3)
