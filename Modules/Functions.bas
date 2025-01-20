@@ -19,7 +19,33 @@ err:
     ObjectIsInCollection = False
 End Function
 
+Public Function IsMarkedParticularRange(ByVal Marked As Range, Optional ByVal CheckCol As Long, _
+                                Optional ByVal StartRow As Long, Optional ByVal LastRow As Long) As Boolean
+    Dim RngCell As Range
+IsMarkedParticularRange = False
+If CheckCol > 0 Then
+    For Each RngCell In Selection.Rows
+        If Not RngCell.Column = CheckCol Then GoTo FalseExit
+    Next RngCell
+End If
+If StartRow > 0 Then
+    For Each RngCell In Selection.Rows
+        If RngCell.Row < StartRow Then GoTo FalseExit
+    Next RngCell
+End If
+If LastRow > 0 Then
+    For Each RngCell In Selection.Rows
+        If RngCell.Row > LastRow Then GoTo FalseExit
+    Next RngCell
+End If
+    'Here code will executes if only if it is needed range
+        IsMarkedParticularRange = True
+        Exit Function
+            
+FalseExit:
+Exit Function
 
+End Function
 
 
 Public Function TransposeArray(inArray As Variant, Optional ShiftX As Long = 0, Optional ShiftY As Long = 0) As Variant
@@ -27,6 +53,7 @@ Public Function TransposeArray(inArray As Variant, Optional ShiftX As Long = 0, 
     Dim XLower As Long, XUpper As Long, YLower  As Long, YUpper As Long
     Dim x As Long, y As Long
     Dim outArray As Variant
+On Error GoTo ErrHandler
 If Not IsArray(inArray) Then GoTo ErrHandler
     XLower = LBound(inArray, 2)
     YLower = LBound(inArray, 1)
@@ -42,6 +69,7 @@ If Not IsArray(inArray) Then GoTo ErrHandler
 Exit Function
 ErrHandler:
 Set inArray = Nothing
+Debug.Print x, y
 Debug.Print "Empty Array in TransposeArray Function"
 End Function
 
@@ -61,6 +89,59 @@ Dim i As Long
         inArray(i) = 0
     Next i
 End Sub
+
+Public Function RangepoID(IndicateString As String) As Range
+If Not IsInitialized Then Call Inicial_Main
+Const FRString As String = "#Start", LCString As String = "#Lcol", LRCString As String = "#Lrow"
+Dim h As Long, i As Long, j As Long, k As Long
+Dim TempStr As String
+Dim NastrLastRow As Long
+NastrLastRow = NastrSheet.Cells(Rows.Count, 1).End(xlUp).Row
+
+For i = 1 To NastrLastRow
+    If NastrSheet.Cells(i, 1).value = IndicateString Then
+        For h = i + 1 To NastrLastRow
+            If NastrSheet.Cells(h, 1).value = FRString Then
+                For j = 1 To NastrSheet.Cells(h, Columns.Count).End(xlToLeft).Column
+                    If NastrSheet.Cells(h, j).value = LCString Then
+                        For k = h + 1 To 65536
+                            If NastrSheet.Cells(k, j).value = LRCString Then
+                                TempStr = NastrSheet.Cells(k - 1, j - 1).Address
+                                GoTo SuccesExit
+                            End If
+                        Next k
+                        GoTo ErrExit
+                    End If
+                Next j
+                GoTo ErrExit
+            End If
+        Next h
+        GoTo ErrExit
+    End If
+Next i
+
+ErrExit:
+    MsgBox "Не мога да намеря граници на блока с име " + IndicateString + _
+            " от работния лист с име " + NastrSheet.name + "."
+    Set RangepoID = NastrSheet.Range("$B$1:$B$1")
+    Exit Function
+
+SuccesExit:
+Set RangepoID = NastrSheet.Range("$B$" & h & ":" & TempStr)
+
+End Function
+
+Public Function getNewBean(ByVal Property As String, value As Variant) As CBean
+On Error GoTo ErrHandler
+Set getNewBean = New CBean
+    getNewBean.Prop = Property
+    getNewBean.Val = value
+Exit Function
+ErrHandler:
+Call EmergencyExit("Функция getNewBean")
+End Function
+
+
 Public Function CheckedValue(ExpVarType As String, CanNull As Boolean, ByVal Source As Variant, Optional Limit As Long = 0, Optional ReturnNullAs As Variant) As Variant
 'Processes simple validation for different ExpVarTypes
     Const ERR_MSG_BASE As String = "Възникна грешка при добавяне на '"
@@ -101,7 +182,7 @@ Case "string"
     GoTo ValueOK
 Case "date"
     If Not IsDate(Source) Then TempMsg = Source & "' като дата.": GoTo ErrHandler
-    If CLng(CDate(Source)) = 0 And CanNull = False Then TempMsg = Source & "' празна стойност в задължителното поле.": GoTo ErrHandler
+    If CDbl(CDate(Source)) = 0 And CanNull = False Then TempMsg = Source & "' празна стойност в задължителното поле.": GoTo ErrHandler
     GoTo ValueOK
 Case "double"
     If IsError(CDbl(Source)) Then TempMsg = Source & "' като число.": GoTo ErrHandler
@@ -116,9 +197,10 @@ Exit Function
 ErrHandler:
 Call EmergencyExit(ERR_MSG_BASE & TempMsg)
 End Function
-
-
-Public Function NullHandledString(ByRef InData As Variant) As String
-    'Adopted. The function avoids Null values in strings. Converting Null as "", and keepeing the same any full string
-    NullHandledString = InData & vbNullString
+Public Function ReplaceSymbolsInText(ByVal txt As String, BadSymbols As String, GoodSymbol As String) As String
+Dim iCount As Integer
+    For iCount = 1 To Len(BadSymbols)
+        txt = Replace(txt, Mid(BadSymbols, iCount, 1), GoodSymbol, , , vbTextCompare)
+    Next
+    ReplaceSymbolsInText = txt
 End Function
