@@ -37,10 +37,13 @@ Select Case PP
 End Select
 Call EmergencyExit(ErrMsg)
 End Sub
+
 Sub CloseTheConnToAccess(ByRef conn As ADODB.Connection)
 If conn Is Nothing Then
     Debug.Print "Връзката не е била отворена, че да се затвори"
-    Else: Set conn = Nothing
+Else
+    conn.Close
+    Set conn = Nothing
 End If
 End Sub
 
@@ -204,6 +207,7 @@ End Function
 Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
 AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
+
 
 
 
