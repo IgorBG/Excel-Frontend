@@ -1,4 +1,4 @@
-Attribute VB_Name = "DBconn"
+'DBconn module. Version: 20230223
 Option Explicit
 Public Function GetNewConnToAccess(ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True) As ADODB.Connection
     Dim conn As ADODB.Connection
@@ -9,35 +9,32 @@ End Function
 
 Sub SetNewConnToAccess(ByRef conn As ADODB.Connection, ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True)
     Dim ErrMsg As String
-    Dim PP As Long
+    Dim breakPoint As Long
     Dim RS As Variant
-PP = 100
+breakPoint = 100
 On Error GoTo Err_Handler
 If Not conn Is Nothing Then GoTo Err_Handler
    Set conn = New ADODB.Connection
-    conn.ConnectionString = "Data Source=" & FullPathToMDBfile
-    #If VBA7 Then 'switching different libraries for different excel versions (2003, 2021)
-        conn.Provider = "Microsoft.ACE.OLEDB.12.0" 'For Excel >=2010 (tested on 2016, 2021)
-    #Else
-        conn.Provider = "Microsoft.Jet.OLEDB.4.0;" 'For Excel 2003
-    #End If
-PP = 200
+       conn.ConnectionString = "Data Source=" & FullPathToMDBfile
+        #If VBA7 Then 'switching different libraries for different excel versions (2003, 2021)
+            conn.Provider = "Microsoft.ACE.OLEDB.12.0"
+        #Else
+            conn.Provider = "Microsoft.Jet.OLEDB.4.0;"
+        #End If
+breakPoint = 200
     If getOpened Then conn.Open
-'Testing the connection
-PP = 250
+'Тестване на връзката
 '    RS = GetRSData(conn, "SELECT 1")
 Exit Sub
 
 Err_Handler:
-Select Case PP
+Select Case breakPoint
     Case 100: ErrMsg = "Връзката към базата данни не е била затворена през предишните операции. Рестартирайте програмата"
-    Case 200: ErrMsg = "Програмата не може да инициира връзката с базата данни по адрес: " & FullPathToMDBfile & ". Вероятно адресът, на който се намира БД трябва да се поднови в лист настройки."
-    Case 250: ErrMsg = "Програмата се свързва с базата данни по адрес: " & FullPathToMDBfile & ". Но пробната заявка се връща с грешка."
-    Case Else: ErrMsg = "Грешка при опит за свързване с базата данни по адрес: " & FullPathToMDBfile
+    Case 200: ErrMsg = "Програмата не открива връзката с базата данни по адрес: " & FullPathToMDBfile & ". Вероятно адресът, на който се намира БД трябва да се поднови в лист настройки."
+    Case Else:: ErrMsg = "Грешка при опит за свързване с базата данни на адрес:: " & FullPathToMDBfile & "."
 End Select
 Call EmergencyExit(ErrMsg)
 End Sub
-
 Sub CloseTheConnToAccess(ByRef conn As ADODB.Connection)
 If conn Is Nothing Then
     Debug.Print "Връзката не е била отворена, че да се затвори"
@@ -60,19 +57,17 @@ Exit Function
 ErrHandler:
 Call EmergencyExit("Проблем в модул getConnectionFromPull")
 End Function
-
 Public Function GetFirstRecordFromRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean) As Variant
 Dim r As Variant
     r = GetRSData(conn, sqlCmd, ConnCloseAfter)
     If IsArray(r) Then GetFirstRecordFromRSData = r(LBound(r, 1), LBound(r, 2))
 End Function
 
-Public Function GetRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean, Optional Parameters As Variant = "", Optional cmdType = adCmdText) As Variant
+Public Function GetRSData(ByRef conn As ADODB.Connection, ByVal sqlCmd As String, Optional ConnCloseAfter As Boolean, Optional parameters As Variant = "", Optional cmdType = adCmdText) As Variant
 Dim RS As ADODB.Recordset
 Dim Cmd As ADODB.Command
 On Error GoTo ErrHandler
-    If conn.State = 0 Then conn.Open
-    Set Cmd = GetNewADODBCommand(conn, sqlCmd, Parameters, cmdType)
+    Set Cmd = GetNewADODBCommand(conn, sqlCmd, parameters, cmdType)
         Set RS = Cmd.Execute
             If Not RS.EOF And Not RS.BOF Then
                 GetRSData = RS.GetRows
@@ -89,20 +84,20 @@ ErrHandler:
     Set RS = Nothing
 End Function
 
-Public Sub ExecuteStoredProcedure(ByVal conn As ADODB.Connection, ByVal StorProcName As String, Optional ByVal Parameters As Variant)
+Public Sub ExecuteStoredProcedure(ByVal conn As ADODB.Connection, ByVal StorProcName As String, Optional ByVal parameters As Variant, Optional ByRef RecordsAffected As Long)
     Dim TemCmd As New ADODB.Command
 On Error GoTo ErrHandler
-Set TemCmd = GetNewADODBCommand(conn, StorProcName, Parameters, adCmdStoredProc)
-Call TemCmd.Execute
+Set TemCmd = GetNewADODBCommand(conn, StorProcName, parameters, adCmdStoredProc)
+Call TemCmd.Execute(RecordsAffected)
 Exit Sub
 
 ErrHandler:
-Call EmergencyExit("Модул ExecuteStoredProcedure")
+Call EmergencyExit("Module ExecuteStoredProcedure")
 End Sub
     
 
     
-    Private Function GetNewADODBCommand(ByRef conn As ADODB.Connection, ByVal CommandText As String, Optional ByVal Parameters As Variant, Optional cmdType = adCmdText) As ADODB.Command
+    Private Function GetNewADODBCommand(ByRef conn As ADODB.Connection, ByVal CommandText As String, Optional ByVal parameters As Variant, Optional cmdType = adCmdText) As ADODB.Command
     Dim i As Long
     Dim TekCmnd As New ADODB.Command
     Dim ParametersArray As Variant
@@ -110,18 +105,16 @@ End Sub
         TekCmnd.CommandText = CommandText
         TekCmnd.CommandType = cmdType
         TekCmnd.CommandTimeout = 15
-    
-    If IsMissing(Parameters) Then Parameters = vbNullString
+        
   'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!
-
-        ParametersArray = GetParametersAsArray(Parameters)
+        ParametersArray = GetParametersAsArray(parameters)
         
         For i = LBound(ParametersArray) To UBound(ParametersArray)
             Select Case ParametersArray(i)
             Case vbNullString
-                Call TekCmnd.Parameters.Append(CreateCommandParameter("none", Null))
+                Call TekCmnd.parameters.Append(CreateCommandParameter("none", Null))
             Case Else
-                Call TekCmnd.Parameters.Append(CreateCommandParameter(ParametersArray(i), ParametersArray(i)))
+                Call TekCmnd.parameters.Append(CreateCommandParameter(ParametersArray(i), ParametersArray(i)))
             End Select
         Next i
         
@@ -175,16 +168,16 @@ ErrHandler:
         Set CreateCommandParameter = result
     End Function
 
-Private Function GetParametersAsArray(ByRef Parameters As Variant) As Variant
+Private Function GetParametersAsArray(ByRef parameters As Variant) As Variant
 On Error GoTo ErrHandler
-If IsArray(Parameters) Then GetParametersAsArray = Parameters: Exit Function
-Select Case VarType(Parameters)
+If IsArray(parameters) Then GetParametersAsArray = parameters: Exit Function
+Select Case VarType(parameters)
     Case VbVarType.vbArray
-        GetParametersAsArray = Parameters
+        GetParametersAsArray = parameters
     Case VbVarType.vbObject
-        GetParametersAsArray = getParamArrayFromColl(Parameters)
+        GetParametersAsArray = getParamArrayFromColl(parameters)
     Case Else
-        GetParametersAsArray = Array(Parameters)
+        GetParametersAsArray = Array(parameters)
 End Select
 Exit Function
 
@@ -207,8 +200,4 @@ End Function
 Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
 AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
-
-
-
-
 
