@@ -1,4 +1,4 @@
-'DBconn module. Version: 20230223
+'DBconn module. Version: 20260316
 Option Explicit
 Public Function GetNewConnToAccess(ByVal FullPathToMDBfile As String, Optional getOpened As Boolean = True) As ADODB.Connection
     Dim conn As ADODB.Connection
@@ -106,18 +106,18 @@ End Sub
         TekCmnd.CommandType = cmdType
         TekCmnd.CommandTimeout = 15
         
-  'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!
-        ParametersArray = GetParametersAsArray(parameters)
-        
-        For i = LBound(ParametersArray) To UBound(ParametersArray)
-            Select Case ParametersArray(i)
-            Case vbNullString
-                Call TekCmnd.parameters.Append(CreateCommandParameter("none", Null))
-            Case Else
-                Call TekCmnd.parameters.Append(CreateCommandParameter(ParametersArray(i), ParametersArray(i)))
-            End Select
-        Next i
-        
+  'ADO does not correctly retrieve named parameters, so the names are ignored. Thus, the order of parameters in the ParametersArray must be the same ас in the stored procedure!
+        If Not IsMissing(parameters) Then
+            ParametersArray = GetParametersAsArray(parameters)
+            For i = LBound(ParametersArray) To UBound(ParametersArray)
+                Select Case ParametersArray(i)
+                Case vbNullString, Null
+                    Call TekCmnd.parameters.Append(CreateCommandParameter("none", Null))
+                Case Else
+                    Call TekCmnd.parameters.Append(CreateCommandParameter(ParametersArray(i), ParametersArray(i)))
+                End Select
+            Next i
+        End If
         Set GetNewADODBCommand = TekCmnd
         Exit Function
 ErrHandler:
@@ -200,4 +200,3 @@ End Function
 Public Function AdaptedQuery(ByVal SQLQuery As String, Optional ByVal Criteria As String = vbNullString) As String
 AdaptedQuery = Replace(SQLQuery, "@Criteria", "'%" & Criteria & "%'")
 End Function
-
